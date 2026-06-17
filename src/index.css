@@ -1,0 +1,69 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+@import "tailwindcss";
+
+:root {
+  /* Default Light Mode colors */
+  --bg-color: #F8FAFC;
+  --text-main: #0F172A;
+  --text-muted: #475569;
+  --accent-color: #2563EB; /* Blue 600 (Xanh dương sâu lắng, chuyên nghiệp) */
+  --card-bg: #FFFFFF;
+  --card-border: #E2E8F0; /* Slate 200 */
+  --timeline-dot-bg: #F8FAFC;
+  color-scheme: light;
+}
+
+:root.dark {
+  /* Dark Mode colors */
+  --bg-color: #0F0F14;
+  --text-main: #F1F5F9;
+  --text-muted: #94A3B8;
+  --accent-color: #60A5FA; /* Blue 400 (Xanh lam công nghệ, sáng và hiện đại) */
+  --card-bg: rgba(255, 255, 255, 0.015);
+  --card-border: rgba(255, 255, 255, 0.05);
+  --timeline-dot-bg: #0F0F14;
+  color-scheme: dark;
+}
+
+@theme {
+  --color-app-bg: var(--bg-color);
+  --color-app-text: var(--text-main);
+  --color-app-muted: var(--text-muted);
+  --color-app-accent: var(--accent-color);
+  --color-app-card: var(--card-bg);
+  --color-app-border: var(--card-border);
+  --color-app-timeline-dot: var(--timeline-dot-bg);
+
+  --font-display: "Plus Jakarta Sans", "Inter", sans-serif;
+  --font-body: "Inter", sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Custom scrollbar to match the theme */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-color);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--card-border);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-color);
+}
