@@ -65,6 +65,35 @@ const renderDescriptionList = (description) => {
   );
 };
 
+// Custom component to handle technology tag input as a comma-separated list
+const TechInput = ({ value, onChange }) => {
+  const [inputValue, setInputValue] = useState(value?.join(', ') || '');
+
+  // Keep local state in sync if parent value changes externally (e.g., loaded template/database)
+  useEffect(() => {
+    setInputValue(value?.join(', ') || '');
+  }, [value?.join(', ')]);
+
+  const handleChange = (e) => {
+    const newVal = e.target.value;
+    setInputValue(newVal);
+    
+    // Parse comma-separated string into an array of strings, trimming each value
+    const newArray = newVal.split(',').map(s => s.trim()).filter(Boolean);
+    onChange(newArray);
+  };
+
+  return (
+    <input 
+      type="text" 
+      value={inputValue} 
+      onChange={handleChange}
+      className="w-full px-2.5 py-1.5 rounded bg-app-bg border border-app-border text-xs text-app-text focus:border-app-accent focus:outline-none"
+      placeholder="React, Node.js, Zalo Mini App"
+    />
+  );
+};
+
 function App() {
   // Main CV State — persist to localStorage so profile survives reload / new tabs
   const [profileData, setProfileData] = useState(() => {
@@ -401,7 +430,10 @@ function App() {
   const handleUpdateProject = (index, field, val) => {
     const list = [...editData.projects];
     if (field === 'tech') {
-      list[index] = { ...list[index], tech: val.split(',').map(s => s.trim()).filter(Boolean) };
+      list[index] = { 
+        ...list[index], 
+        tech: Array.isArray(val) ? val : val.split(',').map(s => s.trim()).filter(Boolean) 
+      };
     } else {
       list[index] = { ...list[index], [field]: val };
     }
@@ -1144,12 +1176,9 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                             </div>
                             <div className="space-y-1">
                               <label className="text-[10px] uppercase font-bold text-app-muted">Công nghệ (cách nhau bằng dấu phẩy)</label>
-                              <input 
-                                type="text" 
-                                value={proj.tech?.join(', ')} 
-                                onChange={(e) => handleUpdateProject(idx, 'tech', e.target.value)}
-                                className="w-full px-2.5 py-1.5 rounded bg-app-bg border border-app-border text-xs text-app-text focus:border-app-accent focus:outline-none"
-                                placeholder="React, Node.js, Tailwind"
+                              <TechInput 
+                                value={proj.tech} 
+                                onChange={(newTech) => handleUpdateProject(idx, 'tech', newTech)}
                               />
                             </div>
                             <div className="space-y-1 sm:col-span-2">
