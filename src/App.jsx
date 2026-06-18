@@ -447,7 +447,7 @@ function App() {
       ...prev,
       experience: [
         ...prev.experience,
-        { company: 'Công ty mới', role: 'Vị trí công việc', period: '2024', description: 'Mô tả công việc của bạn' }
+        { company: 'Công ty mới', role: 'Vị trí công việc', period: '2024', description: 'Mô tả công việc của bạn', skills: [] }
       ]
     }));
   };
@@ -617,7 +617,8 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
       "company": "Tên công ty",
       "role": "Vị trí",
       "period": "2022 - 2024",
-      "description": "Mô tả ngắn công việc và thành tựu chính"
+      "description": "Mô tả ngắn công việc và thành tựu chính",
+      "skills": ["React", "Node.js"]
     }
   ],
   "projects": [
@@ -1194,6 +1195,13 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                                 onChange={(e) => handleUpdateExperience(idx, 'description', e.target.value)}
                                 className="w-full px-2.5 py-1.5 rounded bg-app-bg border border-app-border text-xs text-app-text focus:border-app-accent focus:outline-none resize-y"
                               ></textarea>
+                            </div>
+                            <div className="space-y-1 sm:col-span-3">
+                              <label className="text-[10px] uppercase font-bold text-app-muted">Kỹ năng sử dụng (ngăn cách bằng dấu phẩy)</label>
+                              <TechInput 
+                                value={exp.skills || []} 
+                                onChange={(val) => handleUpdateExperience(idx, 'skills', val)}
+                              />
                             </div>
                           </div>
                         </div>
@@ -1897,6 +1905,17 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
 
                       {/* Bulleted description */}
                       {renderDescriptionList(exp.description)}
+
+                      {/* Experience Skills tags */}
+                      {exp.skills && exp.skills.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 pt-2">
+                          {exp.skills.map((skill, i) => (
+                            <span key={i} className="px-2 py-0.5 rounded bg-app-bg text-[10px] font-semibold text-app-text border border-app-border hover:border-app-accent/30 transition-colors">
+                              {skill}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
 
