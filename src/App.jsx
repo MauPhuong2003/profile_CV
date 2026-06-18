@@ -307,7 +307,7 @@ function App() {
     setIsAuthed(false);
     sessionStorage.removeItem('admin_authed');
     setPasswordInput('');
-    navigateTo('/');
+    navigateTo('/admin');
   };
 
   // Smooth Scroll Helper
@@ -826,17 +826,10 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                   </p>
                 </div>
 
-                <div className="flex gap-3 pt-2">
-                  <button 
-                    onClick={() => navigateTo('/')}
-                    className="flex-1 py-2.5 rounded-lg bg-white/5 border border-app-border text-app-muted text-sm hover:bg-white/10 hover:text-app-text transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-                  >
-                    <ArrowLeft className="w-4 h-4" />
-                    Về CV
-                  </button>
+                <div className="pt-2">
                   <button 
                     onClick={handleAuthSubmit}
-                    className="flex-1 py-2.5 rounded-lg bg-app-accent text-black font-bold text-sm hover:opacity-90 transition-opacity cursor-pointer"
+                    className="w-full py-2.5 rounded-lg bg-app-accent text-black font-bold text-sm hover:opacity-90 transition-opacity cursor-pointer"
                   >
                     Xác nhận
                   </button>
