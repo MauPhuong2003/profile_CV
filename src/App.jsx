@@ -1910,7 +1910,7 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                       {exp.skills && exp.skills.length > 0 && (
                         <div className="flex flex-wrap gap-1.5 pt-2">
                           {exp.skills.map((skill, i) => (
-                            <span key={i} className="px-2 py-0.5 rounded bg-app-bg text-[10px] font-semibold text-app-text border border-app-border hover:border-app-accent/30 transition-colors">
+                            <span key={i} className="px-2 py-1 rounded bg-app-bg text-[10px] font-bold text-app-accent border border-app-border">
                               {skill}
                             </span>
                           ))}
@@ -1997,7 +1997,7 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                   {profileData.education.skills.split(',').map(s => s.trim()).filter(Boolean).map((skill, index) => (
                     <span 
                       key={index}
-                      className="px-2 py-0.5 rounded bg-app-bg text-app-text border border-app-border text-xs font-semibold hover:border-app-accent/30 transition-colors"
+                      className="px-2 py-1 rounded bg-app-bg text-[10px] font-bold text-app-accent border border-app-border"
                     >
                       {skill}
                     </span>
