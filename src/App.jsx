@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { 
-  Sparkles, Mail, Github, Linkedin, Briefcase, GraduationCap, 
-  Code, Download, ExternalLink, Settings, X, Plus, Trash2, 
+  Sparkles, Mail, Linkedin, Briefcase, GraduationCap, 
+  Code, Download, Settings, Plus, Trash2, 
   CheckCircle, FileText, Send, Lock, Eye, Key, Laptop, Info, 
   ArrowUpRight, Sun, Moon, ArrowLeft, LogOut, Upload, File,
   Calendar, Phone, MapPin, Target, Milestone
@@ -51,7 +51,7 @@ const renderDescriptionList = (description) => {
     .split('\n')
     .map(line => line.trim())
     .filter(Boolean)
-    .map(line => line.replace(/^[\s\-\*•\+]+/, '').trim())
+    .map(line => line.replace(/^[\s\-*•+]+/, '').trim())
     .filter(Boolean);
 
   if (lines.length === 0) return null;
@@ -71,7 +71,9 @@ const TechInput = ({ value, onChange }) => {
 
   // Keep local state in sync if parent value changes externally (e.g., loaded template/database)
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setInputValue(value?.join(', ') || '');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value?.join(', ')]);
 
   const handleChange = (e) => {
@@ -138,6 +140,37 @@ function App() {
   const [aiResponseRaw, setAiResponseRaw] = useState('');
   const [parsedAiData, setParsedAiData] = useState(null);
   const [aiError, setAiError] = useState('');
+  const [cvBlobUrl, setCvBlobUrl] = useState('');
+
+  // Convert Base64 data CV to blob URL to fix download on mobile browsers (especially Safari iOS)
+  useEffect(() => {
+    if (profileData.cvUrl && profileData.cvUrl.startsWith('data:')) {
+      try {
+        const parts = profileData.cvUrl.split(',');
+        const contentType = parts[0].split(':')[1].split(';')[0] || 'application/pdf';
+        const base64Data = parts[1];
+        const byteCharacters = atob(base64Data);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: contentType });
+        const url = URL.createObjectURL(blob);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setCvBlobUrl(url);
+
+        return () => {
+          URL.revokeObjectURL(url);
+        };
+      } catch (err) {
+        console.error("Error creating CV blob URL:", err);
+        setCvBlobUrl('');
+      }
+    } else {
+      setCvBlobUrl('');
+    }
+  }, [profileData.cvUrl]);
 
   // Contact Form State
   const [contactForm, setContactForm] = useState({ name: '', email: '', message: '' });
@@ -162,10 +195,8 @@ function App() {
     // Set theme class based on saved state in sessionStorage
     const savedTheme = sessionStorage.getItem('theme') || 'light';
     if (savedTheme === 'dark') {
-      setIsDarkMode(true);
       document.documentElement.classList.add('dark');
     } else {
-      setIsDarkMode(false);
       document.documentElement.classList.remove('dark');
     }
 
@@ -219,7 +250,9 @@ function App() {
             setEditData(parsed);
             setUploadedAvatarName(parsed.avatar?.startsWith('data:') ? 'Ảnh từ thiết bị' : '');
           }
-        } catch {}
+        } catch (err) {
+          console.error("Error loading localStorage fallback:", err);
+        }
       } finally {
         setIsDbLoading(false);
       }
@@ -388,6 +421,24 @@ function App() {
     }));
   };
 
+  const handleUpdateCategoryName = (oldName, newName) => {
+    if (oldName === newName) return;
+    setEditData(prev => {
+      const newSkills = {};
+      Object.keys(prev.skills || {}).forEach(key => {
+        if (key === oldName) {
+          newSkills[newName] = prev.skills[oldName] || [];
+        } else {
+          newSkills[key] = prev.skills[key];
+        }
+      });
+      return {
+        ...prev,
+        skills: newSkills
+      };
+    });
+  };
+
   // Add / Edit / Delete Experiences
   const handleAddExperience = () => {
     setEditData(prev => ({
@@ -486,13 +537,13 @@ function App() {
   const extractJSON = (text) => {
     try {
       return JSON.parse(text);
-    } catch (e) {
+    } catch (err) {
       const jsonMatch = text.match(/```json\s*([\s\S]*?)\s*```/) || text.match(/```\s*([\s\S]*?)\s*```/);
       if (jsonMatch && jsonMatch[1]) {
         try {
           return JSON.parse(jsonMatch[1].trim());
-        } catch (e2) {
-          // ignore
+        } catch (err2) {
+          console.error("Failed parsing jsonMatch:", err2);
         }
       }
       const startIdx = text.indexOf('{');
@@ -500,11 +551,11 @@ function App() {
       if (startIdx !== -1 && endIdx !== -1) {
         try {
           return JSON.parse(text.slice(startIdx, endIdx + 1));
-        } catch (e3) {
-          // ignore
+        } catch (err3) {
+          console.error("Failed parsing bracket slice:", err3);
         }
       }
-      throw new Error("Không thể parse dữ liệu JSON từ phản hồi của AI. Vui lòng thử lại.");
+      throw new Error("Không thể parse dữ liệu JSON từ phản hồi của AI. Vui lòng thử lại.", { cause: err });
     }
   };
 
@@ -1041,13 +1092,19 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                   <div className="space-y-4">
                     <h4 className="text-sm font-bold uppercase tracking-wider text-app-accent border-b border-app-border pb-2">Kỹ năng</h4>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      {['Hệ thống & Hạ tầng', 'Triển khai & Tích hợp', 'Công cụ & Quy trình'].map((cat) => (
-                        <div key={cat} className="p-4 rounded-xl bg-app-bg/50 border border-app-border space-y-3">
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm font-bold text-app-text">{cat}</span>
+                      {Object.keys(editData.skills || {}).map((cat, catIdx) => (
+                        <div key={catIdx} className="p-4 rounded-xl bg-app-bg/50 border border-app-border space-y-3">
+                          <div className="flex items-center justify-between gap-2">
+                            <input 
+                              type="text" 
+                              value={cat} 
+                              onChange={(e) => handleUpdateCategoryName(cat, e.target.value)}
+                              className="font-bold text-sm bg-transparent border-b border-transparent hover:border-app-border focus:border-app-accent focus:outline-none text-app-text w-[60%]"
+                              placeholder="Tên nhóm kỹ năng"
+                            />
                             <button 
                               onClick={() => handleAddSkill(cat)}
-                              className="p-1 rounded bg-app-accent/10 text-app-accent hover:bg-app-accent/25 transition-all text-xs flex items-center gap-1 font-bold cursor-pointer"
+                              className="p-1 rounded bg-app-accent/10 text-app-accent hover:bg-app-accent/25 transition-all text-xs flex items-center gap-1 font-bold cursor-pointer shrink-0"
                             >
                               <Plus className="w-3.5 h-3.5" /> Thêm
                             </button>
@@ -1633,9 +1690,9 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
               Liên hệ với tôi
             </a>
             <a 
-              href={profileData.cvUrl || "#"} 
-              download={profileData.cvUrl && profileData.cvUrl.startsWith('data:') ? "CV_Profile.pdf" : undefined}
-              target={profileData.cvUrl && profileData.cvUrl.startsWith('data:') ? "_self" : "_blank"}
+              href={cvBlobUrl || profileData.cvUrl || "#"} 
+              download="CV_Profile.pdf"
+              target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-app-card border border-app-border text-app-text font-semibold text-sm md:text-base hover:bg-white/10 hover:border-app-accent/30 transition-all hover:scale-[1.02]"
             >
@@ -1813,13 +1870,13 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                     <div className="absolute -bottom-12 -right-12 w-28 h-28 bg-app-accent/5 rounded-full blur-2xl group-hover:bg-app-accent/10 transition-all pointer-events-none"></div>
 
                     <div className="space-y-3 relative z-10">
-                      {/* Header: role + period badge */}
+                      {/* Header: company + period badge */}
                       <div className="flex flex-wrap items-start justify-between gap-2">
                         <div>
                           <h3 className="font-display text-base font-bold text-app-text group-hover:text-app-accent transition-colors">
-                            {exp.role}
+                            {exp.company}
                           </h3>
-                          <p className="text-sm font-semibold text-app-accent/90 mt-0.5">{exp.company}</p>
+                          <p className="text-sm font-semibold text-app-accent/90 mt-0.5">{exp.role}</p>
                         </div>
                         <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-app-bg border border-app-border text-app-muted shrink-0">
                           {exp.period}
