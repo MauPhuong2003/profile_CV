@@ -32,7 +32,8 @@ const defaultProfile = {
   education: {
     school: "",
     major: "",
-    year: ""
+    year: "",
+    skills: ""
   },
   contact: {
     email: "",
@@ -631,7 +632,8 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
   "education": {
     "school": "Tên trường",
     "major": "Ngành học",
-    "year": "2020"
+    "year": "2020",
+    "skills": "Các kỹ năng đạt được (ví dụ: Lập trình Java, Làm việc nhóm, Giải quyết vấn đề)"
   },
   "contact": {
     "email": "email@example.com",
@@ -1304,6 +1306,16 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                             className="w-full px-2.5 py-1.5 rounded bg-app-bg border border-app-border text-xs text-app-text focus:border-app-accent focus:outline-none"
                           />
                         </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] uppercase font-bold text-app-muted">Kỹ năng / Thành tựu (ngăn cách bằng dấu phẩy)</label>
+                          <input 
+                            type="text" 
+                            placeholder="Ví dụ: Lập trình Java, Làm việc nhóm, Giải quyết vấn đề"
+                            value={editData.education?.skills || ''} 
+                            onChange={(e) => handleManualNestedChange('education', 'skills', e.target.value)}
+                            className="w-full px-2.5 py-1.5 rounded bg-app-bg border border-app-border text-xs text-app-text focus:border-app-accent focus:outline-none"
+                          />
+                        </div>
                       </div>
                     </div>
 
@@ -1968,6 +1980,18 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                 {profileData.education?.school}
               </h3>
               <p className="text-sm text-app-muted">{profileData.education?.major}</p>
+              {profileData.education?.skills && (
+                <div className="flex flex-wrap gap-1.5 pt-2">
+                  {profileData.education.skills.split(',').map(s => s.trim()).filter(Boolean).map((skill, index) => (
+                    <span 
+                      key={index}
+                      className="px-2 py-0.5 rounded bg-app-bg text-app-text border border-app-border text-xs font-semibold hover:border-app-accent/30 transition-colors"
+                    >
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
             <span className="px-4 py-1.5 rounded-full text-xs font-bold bg-app-accent/15 text-app-accent border border-app-accent/20">
               Tốt nghiệp: {profileData.education?.year}
@@ -1987,7 +2011,7 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="space-y-4 md:col-span-1">
               <p className="text-sm text-app-muted leading-relaxed">
-                Bạn có dự án cần xây dựng hay muốn kết nối? Hãy gửi tin nhắn trực tiếp qua biểu mẫu hoặc qua thông tin liên hệ bên dưới:
+                Bạn là nhà tuyển dụng muốn kết nối? Hãy gửi tin nhắn trực tiếp qua biểu mẫu hoặc qua thông tin liên hệ bên dưới:
               </p>
               
               <div className="space-y-3 pt-2">
