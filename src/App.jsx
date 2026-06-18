@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { 
   Sparkles, Mail, Linkedin, Briefcase, GraduationCap, 
   Code, Download, Settings, Plus, Trash2, 
-  CheckCircle, FileText, Send, Lock, Eye, EyeOff, Key, Laptop, Info, 
+  CheckCircle, FileText, Send, Lock, Eye, EyeOff, Key, Laptop, Info, Contact,
   ArrowUpRight, Sun, Moon, ArrowLeft, LogOut, Upload, File,
   Calendar, Phone, MapPin, Target, Milestone
 } from 'lucide-react';
@@ -1765,14 +1765,14 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
             <div className="md:col-span-1">
               <div className="p-6 rounded-xl bg-app-card border border-app-border shadow-sm space-y-4">
                 <h3 className="font-display text-base font-bold text-app-text border-b border-app-border pb-2.5 flex items-center gap-2">
-                  <Mail className="w-4 h-4 text-app-accent" />
+                  <Contact className="w-4 h-4 text-app-accent" />
                   Thông tin liên hệ
                 </h3>
                 
                 <div className="space-y-4 text-sm">
                   {profileData.birthDate && (
-                    <div className="flex items-start gap-3">
-                      <Calendar className="w-4.5 h-4.5 text-app-accent shrink-0 mt-0.5" />
+                    <div className="flex items-center gap-3">
+                      <Calendar className="w-4.5 h-4.5 text-app-accent shrink-0" />
                       <div>
                         <p className="text-[10px] uppercase font-bold text-app-muted tracking-wider">Ngày sinh</p>
                         <p className="font-semibold text-app-text">{profileData.birthDate}</p>
@@ -1781,8 +1781,8 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                   )}
 
                   {profileData.phone && (
-                    <div className="flex items-start gap-3">
-                      <Phone className="w-4.5 h-4.5 text-app-accent shrink-0 mt-0.5" />
+                    <div className="flex items-center gap-3">
+                      <Phone className="w-4.5 h-4.5 text-app-accent shrink-0" />
                       <div>
                         <p className="text-[10px] uppercase font-bold text-app-muted tracking-wider">Số điện thoại</p>
                         <p className="font-semibold text-app-text">{profileData.phone}</p>
@@ -1791,8 +1791,8 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                   )}
 
                   {profileData.contact?.email && (
-                    <div className="flex items-start gap-3">
-                      <Mail className="w-4.5 h-4.5 text-app-accent shrink-0 mt-0.5" />
+                    <div className="flex items-center gap-3">
+                      <Mail className="w-4.5 h-4.5 text-app-accent shrink-0" />
                       <div>
                         <p className="text-[10px] uppercase font-bold text-app-muted tracking-wider">Email</p>
                         <p className="font-semibold text-app-text truncate max-w-[170px]" title={profileData.contact.email}>
@@ -1803,8 +1803,8 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                   )}
 
                   {profileData.address && (
-                    <div className="flex items-start gap-3">
-                      <MapPin className="w-4.5 h-4.5 text-app-accent shrink-0 mt-0.5" />
+                    <div className="flex items-center gap-3">
+                      <MapPin className="w-4.5 h-4.5 text-app-accent shrink-0" />
                       <div>
                         <p className="text-[10px] uppercase font-bold text-app-muted tracking-wider">Địa chỉ</p>
                         <p className="font-semibold text-app-text">{profileData.address}</p>
