@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { 
   Sparkles, Mail, Linkedin, Briefcase, GraduationCap, 
   Code, Download, Settings, Plus, Trash2, 
-  CheckCircle, FileText, Send, Lock, Eye, Key, Laptop, Info, 
+  CheckCircle, FileText, Send, Lock, Eye, EyeOff, Key, Laptop, Info, 
   ArrowUpRight, Sun, Moon, ArrowLeft, LogOut, Upload, File,
   Calendar, Phone, MapPin, Target, Milestone
 } from 'lucide-react';
@@ -120,6 +120,7 @@ function App() {
   // Admin Auth State (Read from sessionStorage to persist login on reload)
   const [passwordInput, setPasswordInput] = useState('');
   const [passError, setPassError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isAuthed, setIsAuthed] = useState(() => {
     return sessionStorage.getItem('admin_authed') === 'true';
   });
@@ -789,7 +790,7 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                   <label className="text-xs font-semibold text-app-muted">Mật khẩu quản trị</label>
                   <div className="relative">
                     <input 
-                      type="password" 
+                      type={showPassword ? "text" : "password"} 
                       placeholder="Vui lòng nhập mật khẩu" 
                       value={passwordInput}
                       onChange={(e) => {
@@ -803,10 +804,16 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                       autoFocus
                     />
                     <button 
-                      onClick={handleAuthSubmit}
-                      className="absolute right-1.5 top-1.5 p-1.5 rounded-md bg-app-accent text-app-bg hover:opacity-90 transition-opacity cursor-pointer"
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-1.5 top-1.5 p-1.5 rounded-md hover:bg-white/10 text-app-muted hover:text-app-text transition-colors cursor-pointer"
+                      title={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
                     >
-                      <Key className="w-4 h-4 text-black" />
+                      {showPassword ? (
+                        <EyeOff className="w-4 h-4" />
+                      ) : (
+                        <Eye className="w-4 h-4" />
+                      )}
                     </button>
                   </div>
                   {passError && (
