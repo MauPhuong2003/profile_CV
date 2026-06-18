@@ -2194,9 +2194,9 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                 <div key={idx} className="flex items-start gap-5 group">
 
                   {/* Timeline dot — sits exactly on the lane */}
-                  <div className="relative w-[18px] h-[18px] shrink-0 rounded-full bg-app-card border-2 border-app-border group-hover:border-app-accent transition-all duration-300 z-10 flex items-center justify-center mt-5">
-                    <div className="w-2 h-2 rounded-full bg-app-border group-hover:bg-app-accent transition-all duration-300"></div>
-                    <span className="absolute inset-0 rounded-full bg-app-accent/25 opacity-0 group-hover:opacity-100 animate-ping pointer-events-none"></span>
+                  <div className="relative w-[18px] h-[18px] shrink-0 rounded-full bg-app-card border-2 border-app-accent transition-all duration-300 z-10 flex items-center justify-center mt-5">
+                    <div className="w-2 h-2 rounded-full bg-app-accent transition-all duration-300"></div>
+                    <span className="absolute inset-0 rounded-full bg-app-accent/25 animate-ping pointer-events-none"></span>
                   </div>
 
                   {/* Experience Card */}
