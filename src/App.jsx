@@ -2,12 +2,83 @@ import { useState, useEffect } from 'react';
 import { 
   Sparkles, Mail, Linkedin, Briefcase, GraduationCap, 
   Code, Download, Settings, Plus, Trash2, 
-  CheckCircle, FileText, Send, Lock, Eye, EyeOff, Key, Laptop, Info, Contact,
+  CheckCircle, FileText, Send, Lock, Eye, EyeOff, Key, Laptop, Info, Contact, Globe,
   ArrowUpRight, Sun, Moon, ArrowLeft, LogOut, Upload, File,
   Calendar, Phone, MapPin, Target, Milestone
 } from 'lucide-react';
 import { db } from './firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
+
+const uiTranslations = {
+  vi: {
+    about: "Giới thiệu bản thân",
+    skills: "Kỹ năng chuyên môn",
+    experience: "Kinh nghiệm làm việc",
+    projects: "Dự án triển khai",
+    education: "Học vấn & Bằng cấp",
+    contact: "Liên hệ",
+    contactMe: "Liên hệ với tôi",
+    downloadCv: "Tải CV",
+    contactInfo: "Thông tin liên hệ",
+    birthDate: "Ngày sinh",
+    phone: "Số điện thoại",
+    address: "Địa chỉ",
+    shortGoal: "Mục tiêu ngắn hạn",
+    longGoal: "Mục tiêu dài hạn",
+    graduated: "Tốt nghiệp",
+    navAbout: "Giới thiệu",
+    navSkills: "Kỹ năng",
+    navExperience: "Kinh nghiệm",
+    navProjects: "Dự án",
+    navEducation: "Học vấn",
+    navContact: "Liên hệ",
+    recruiterConnect: "Bạn là nhà tuyển dụng muốn kết nối? Hãy gửi tin nhắn trực tiếp qua biểu mẫu hoặc qua thông tin liên hệ bên dưới:",
+    contactSuccessTitle: "Gửi tin nhắn thành công!",
+    contactSuccessDesc: "Cảm ơn bạn đã liên hệ. Tôi sẽ phản hồi lại sớm nhất có thể.",
+    yourName: "Tên của bạn",
+    emailAddress: "Địa chỉ Email",
+    messageContent: "Nội dung tin nhắn",
+    messagePlaceholder: "Lời nhắn của bạn...",
+    sendBtn: "Gửi tin nhắn",
+    sending: "Đang gửi...",
+    backToTop: "Đầu trang",
+    connectNow: "Liên hệ ngay"
+  },
+  en: {
+    about: "About Me",
+    skills: "Professional Skills",
+    experience: "Work Experience",
+    projects: "Featured Projects",
+    education: "Education & Credentials",
+    contact: "Contact",
+    contactMe: "Contact Me",
+    downloadCv: "Download CV",
+    contactInfo: "Contact Information",
+    birthDate: "Date of Birth",
+    phone: "Phone Number",
+    address: "Address",
+    shortGoal: "Short-term Goal",
+    longGoal: "Long-term Goal",
+    graduated: "Graduated",
+    navAbout: "About",
+    navSkills: "Skills",
+    navExperience: "Experience",
+    navProjects: "Projects",
+    navEducation: "Education",
+    navContact: "Contact",
+    recruiterConnect: "Are you a recruiter looking to connect? Send a direct message using the form or reach out via the contact info below:",
+    contactSuccessTitle: "Message Sent Successfully!",
+    contactSuccessDesc: "Thank you for reaching out. I will respond as soon as possible.",
+    yourName: "Your Name",
+    emailAddress: "Email Address",
+    messageContent: "Message Content",
+    messagePlaceholder: "Your message...",
+    sendBtn: "Send Message",
+    sending: "Sending...",
+    backToTop: "Back to Top",
+    connectNow: "Connect Now"
+  }
+};
 
 // Default Profile Data (blank — fill via Admin panel)
 const defaultProfile = {
@@ -66,6 +137,23 @@ const renderDescriptionList = (description) => {
   );
 };
 
+// Helper to sort skills categories to maintain identical visual order across languages
+const getSortedSkills = (skills, lang) => {
+  if (!skills) return [];
+  const entries = Object.entries(skills);
+  const orderVi = ["Triển khai & Tích hợp", "Hệ thống & Hạ tầng", "Công cụ & Quy trình"];
+  const orderEn = ["Deployment & Integration", "Systems & Infrastructure", "Tools & Processes"];
+  const orderList = lang === 'vi' ? orderVi : orderEn;
+  
+  return entries.sort((a, b) => {
+    const idxA = orderList.indexOf(a[0]);
+    const idxB = orderList.indexOf(b[0]);
+    const valA = idxA === -1 ? 999 : idxA;
+    const valB = idxB === -1 ? 999 : idxB;
+    return valA - valB;
+  });
+};
+
 // Custom component to handle technology tag input as a comma-separated list
 const TechInput = ({ value, onChange }) => {
   const [inputValue, setInputValue] = useState(value?.join(', ') || '');
@@ -99,14 +187,39 @@ const TechInput = ({ value, onChange }) => {
 
 function App() {
   // Main CV State — persist to localStorage so profile survives reload / new tabs
-  const [profileData, setProfileData] = useState(() => {
+  const [currentLang, setCurrentLang] = useState('vi');
+  const [adminEditLang, setAdminEditLang] = useState('vi');
+  const [isTranslating, setIsTranslating] = useState(false);
+
+  // Main CV State — persist both VI and EN versions in a single state object
+  const [allProfiles, setAllProfiles] = useState(() => {
     try {
+      const savedMultilang = localStorage.getItem('cv_profile_data_multilang');
+      if (savedMultilang) {
+        const parsed = JSON.parse(savedMultilang);
+        return {
+          vi: { ...defaultProfile, ...parsed.vi },
+          en: { ...defaultProfile, ...parsed.en }
+        };
+      }
       const saved = localStorage.getItem('cv_profile_data');
-      return saved ? { ...defaultProfile, ...JSON.parse(saved) } : defaultProfile;
-    } catch {
-      return defaultProfile;
+      if (saved) {
+        const parsedOld = JSON.parse(saved);
+        return {
+          vi: { ...defaultProfile, ...parsedOld },
+          en: { ...defaultProfile, ...parsedOld }
+        };
+      }
+    } catch (err) {
+      console.error("Error reading initial localStorage:", err);
     }
+    return {
+      vi: defaultProfile,
+      en: defaultProfile
+    };
   });
+
+  const profileData = allProfiles[currentLang];
   
   // Custom SPA Router State ('cv' | 'admin')
   const [currentRoute, setCurrentRoute] = useState(() => {
@@ -133,6 +246,8 @@ function App() {
   const [uploadedAvatarName, setUploadedAvatarName] = useState(() => {
     return profileData.avatar?.startsWith('data:') ? 'Ảnh từ thiết bị' : '';
   });
+
+  const t = uiTranslations[currentLang];
 
   // AI Generator State
   const [apiKey, setApiKey] = useState('');
@@ -212,12 +327,26 @@ function App() {
       if (!db) {
         console.log("Firebase is not initialized. Using localStorage fallback.");
         try {
-          const saved = localStorage.getItem('cv_profile_data');
-          if (saved) {
-            const parsed = { ...defaultProfile, ...JSON.parse(saved) };
-            setProfileData(parsed);
-            setEditData(parsed);
-            setUploadedAvatarName(parsed.avatar?.startsWith('data:') ? 'Ảnh từ thiết bị' : '');
+          const savedMultilang = localStorage.getItem('cv_profile_data_multilang');
+          if (savedMultilang) {
+            const parsed = JSON.parse(savedMultilang);
+            const loadedProfiles = {
+              vi: { ...defaultProfile, ...parsed.vi },
+              en: { ...defaultProfile, ...parsed.en }
+            };
+            setAllProfiles(loadedProfiles);
+            setEditData(loadedProfiles[adminEditLang]);
+          } else {
+            const saved = localStorage.getItem('cv_profile_data');
+            if (saved) {
+              const parsedOld = { ...defaultProfile, ...JSON.parse(saved) };
+              const loadedProfiles = {
+                vi: parsedOld,
+                en: parsedOld
+              };
+              setAllProfiles(loadedProfiles);
+              setEditData(loadedProfiles[adminEditLang]);
+            }
           }
         } catch (err) {
           console.error("Lỗi khi đọc từ localStorage:", err);
@@ -231,26 +360,52 @@ function App() {
         const docRef = doc(db, "profile", "default");
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          const data = { ...defaultProfile, ...docSnap.data() };
-          setProfileData(data);
-          setEditData(data);
-          setUploadedAvatarName(data.avatar?.startsWith('data:') ? 'Ảnh từ thiết bị' : '');
+          const dbData = docSnap.data();
+          let loadedProfiles = {
+            vi: defaultProfile,
+            en: defaultProfile
+          };
+          
+          if (dbData.vi || dbData.en) {
+            loadedProfiles.vi = { ...defaultProfile, ...dbData.vi };
+            loadedProfiles.en = { ...defaultProfile, ...dbData.en };
+          } else if (dbData.name) {
+            const parsedOld = { ...defaultProfile, ...dbData };
+            loadedProfiles.vi = parsedOld;
+            loadedProfiles.en = parsedOld;
+          }
+          
+          setAllProfiles(loadedProfiles);
+          setEditData(loadedProfiles[adminEditLang]);
         } else {
-          // If Firestore document does not exist, seed it with defaultProfile
-          await setDoc(docRef, defaultProfile);
-          setProfileData(defaultProfile);
-          setEditData(defaultProfile);
+          const initial = { vi: defaultProfile, en: defaultProfile };
+          await setDoc(docRef, initial);
+          setAllProfiles(initial);
+          setEditData(initial[adminEditLang]);
         }
       } catch (error) {
         console.error("Lỗi khi tải dữ liệu từ Firestore:", error);
-        // Fallback to localStorage if Firebase fetch fails (network issue, permissions, etc.)
         try {
-          const saved = localStorage.getItem('cv_profile_data');
-          if (saved) {
-            const parsed = { ...defaultProfile, ...JSON.parse(saved) };
-            setProfileData(parsed);
-            setEditData(parsed);
-            setUploadedAvatarName(parsed.avatar?.startsWith('data:') ? 'Ảnh từ thiết bị' : '');
+          const savedMultilang = localStorage.getItem('cv_profile_data_multilang');
+          if (savedMultilang) {
+            const parsed = JSON.parse(savedMultilang);
+            const loadedProfiles = {
+              vi: { ...defaultProfile, ...parsed.vi },
+              en: { ...defaultProfile, ...parsed.en }
+            };
+            setAllProfiles(loadedProfiles);
+            setEditData(loadedProfiles[adminEditLang]);
+          } else {
+            const saved = localStorage.getItem('cv_profile_data');
+            if (saved) {
+              const parsedOld = { ...defaultProfile, ...JSON.parse(saved) };
+              const loadedProfiles = {
+                vi: parsedOld,
+                en: parsedOld
+              };
+              setAllProfiles(loadedProfiles);
+              setEditData(loadedProfiles[adminEditLang]);
+            }
           }
         } catch (err) {
           console.error("Error loading localStorage fallback:", err);
@@ -261,6 +416,7 @@ function App() {
     };
 
     loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Custom Navigation function
@@ -271,10 +427,99 @@ function App() {
     
     // Reset inputs when switching routes
     if (path === '/admin') {
-      setEditData({ ...profileData });
+      setEditData({ ...allProfiles[adminEditLang] });
       setPasswordInput('');
       setPassError('');
-      setUploadedAvatarName(profileData.avatar?.startsWith('data:') ? 'Ảnh từ thiết bị' : '');
+      setUploadedAvatarName(allProfiles[adminEditLang].avatar?.startsWith('data:') ? 'Ảnh từ thiết bị' : '');
+    }
+  };
+
+  const handleSwitchEditLang = (newLang) => {
+    if (newLang === adminEditLang) return;
+    
+    setAllProfiles(prev => ({
+      ...prev,
+      [adminEditLang]: editData
+    }));
+
+    setAdminEditLang(newLang);
+    setEditData(allProfiles[newLang]);
+    setUploadedAvatarName(allProfiles[newLang].avatar?.startsWith('data:') ? 'Ảnh từ thiết bị' : '');
+  };
+
+  const handleAiTranslateToEnglish = async () => {
+    if (!apiKey.trim()) {
+      alert('Vui lòng nhập Anthropic API Key ở tab "Tạo bằng AI (Anthropic)" để sử dụng tính năng dịch bằng AI!');
+      return;
+    }
+    
+    setIsTranslating(true);
+    try {
+      let viProfile = allProfiles.vi;
+      if (adminEditLang === 'vi') {
+        viProfile = editData;
+        setAllProfiles(prev => ({
+          ...prev,
+          vi: editData
+        }));
+      }
+      
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'dangerously-allow-html-user-system-messages': 'true'
+        },
+        body: JSON.stringify({
+          model: 'claude-3-5-sonnet-20241022',
+          max_tokens: 4000,
+          messages: [{
+            role: "user",
+            content: `Bạn là chuyên gia dịch thuật CV công nghệ thông tin chuyên nghiệp. Hãy dịch toàn bộ nội dung của CV Tiếng Việt dạng JSON sau đây sang Tiếng Anh. 
+Yêu cầu:
+1. Dịch đúng thuật ngữ chuyên ngành CNTT, ngữ pháp chuẩn Mỹ tự nhiên và chuyên nghiệp.
+2. Giữ nguyên cấu trúc các keys của JSON ở cấp cao nhất, chỉ dịch các values là chuỗi ký tự (hoặc mảng chuỗi). Riêng đối với object 'skills', bạn CẦN dịch cả các keys (là tên các nhóm kỹ năng, ví dụ "Hệ thống & Hạ tầng" -> "Systems & Infrastructure", "Triển khai & Tích hợp" -> "Deployment & Integration", "Công cụ & Quy trình" -> "Tools & Processes") sang Tiếng Anh cho phù hợp.
+3. Tuyệt đối giữ nguyên giá trị liên kết (như URL hình ảnh, email, số điện thoại, link github/linkedin) và thời gian (như năm tốt nghiệp, thời kỳ làm việc dạng "2022 - 2024").
+4. Trả về định dạng JSON thuần túy, không chứa markdown hay giải thích gì khác.
+
+Dữ liệu JSON:
+${JSON.stringify(viProfile, null, 2)}`
+          }]
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`API Error (${response.status}): ${errorText}`);
+      }
+
+      const data = await response.json();
+      const contentText = data.content[0]?.text;
+      
+      if (!contentText) {
+        throw new Error("Không nhận được nội dung dịch từ API.");
+      }
+
+      const parsed = extractJSON(contentText);
+      
+      parsed.avatar = viProfile.avatar;
+      parsed.cvUrl = viProfile.cvUrl;
+      
+      setEditData(parsed);
+      setAdminEditLang('en');
+      setAllProfiles(prev => ({
+        ...prev,
+        en: parsed
+      }));
+      
+      alert('Dịch thành công! Đã chuyển sang chế độ chỉnh sửa Tiếng Anh với bản dịch từ AI. Vui lòng kiểm tra lại và nhấn "Lưu Profile" để lưu lại.');
+    } catch (err) {
+      console.error(err);
+      alert('Có lỗi xảy ra khi dịch: ' + (err.message || 'Lỗi không xác định'));
+    } finally {
+      setIsTranslating(false);
     }
   };
 
@@ -507,20 +752,25 @@ function App() {
   // Save updates and return to main page
   const handleSaveManual = async () => {
     setIsSaving(true);
+    const updatedProfiles = {
+      ...allProfiles,
+      [adminEditLang]: editData
+    };
     try {
       // 1. Save to Firebase if configured
       if (db) {
         const docRef = doc(db, "profile", "default");
-        await setDoc(docRef, editData);
+        await setDoc(docRef, updatedProfiles);
         console.log("Dữ liệu đã được lưu lên Firebase Firestore.");
       } else {
         console.warn("Firebase chưa được cấu hình. Chỉ lưu dữ liệu vào LocalStorage.");
       }
 
       // 2. Also save to LocalStorage for backup/offline fallback
-      localStorage.setItem('cv_profile_data', JSON.stringify(editData));
+      localStorage.setItem('cv_profile_data_multilang', JSON.stringify(updatedProfiles));
+      localStorage.setItem('cv_profile_data', JSON.stringify(updatedProfiles.vi));
       
-      setProfileData(editData);
+      setAllProfiles(updatedProfiles);
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (error) {
@@ -677,18 +927,24 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
   // Apply AI Data to main CV
   const handleApplyAiData = async () => {
     if (parsedAiData) {
-      setProfileData(parsedAiData);
+      const updatedProfiles = {
+        ...allProfiles,
+        [adminEditLang]: parsedAiData
+      };
+      setAllProfiles(updatedProfiles);
+      setEditData(parsedAiData);
       try {
-        localStorage.setItem('cv_profile_data', JSON.stringify(parsedAiData));
+        localStorage.setItem('cv_profile_data_multilang', JSON.stringify(updatedProfiles));
+        localStorage.setItem('cv_profile_data', JSON.stringify(updatedProfiles.vi));
         if (db) {
           const docRef = doc(db, "profile", "default");
-          await setDoc(docRef, parsedAiData);
+          await setDoc(docRef, updatedProfiles);
           console.log("Dữ liệu AI đã được lưu lên Firebase Firestore.");
         }
       } catch (e) {
         console.error("Lỗi khi đồng bộ dữ liệu AI lên Firebase/LocalStorage:", e);
       }
-      navigateTo('/');
+      navigateTo('/admin');
     }
   };
 
@@ -751,7 +1007,6 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
         </div>
         <div className="text-center space-y-1">
           <h3 className="font-display font-bold text-lg">Đang tải dữ liệu...</h3>
-          <p className="text-xs text-app-muted/70 max-w-xs leading-relaxed">Kết nối và tải cấu hình từ cơ sở dữ liệu...</p>
         </div>
       </div>
     );
@@ -905,6 +1160,56 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
               {/* TAB 1: MANUAL EDIT */}
               {adminTab === 'manual' && (
                 <div className="space-y-8">
+                  {/* Language Selector for Editing */}
+                  <div className="p-4 rounded-xl bg-app-bg/50 border border-app-border flex flex-wrap items-center justify-between gap-4">
+                    <div className="space-y-1">
+                      <p className="text-sm font-bold text-app-text">Ngôn ngữ chỉnh sửa (Editing Language)</p>
+                      <p className="text-xs text-app-muted">Chọn ngôn ngữ để nhập thông tin CV tương ứng</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="flex rounded-lg bg-app-card p-1 border border-app-border">
+                        <button
+                          type="button"
+                          onClick={() => handleSwitchEditLang('vi')}
+                          className={`px-3 py-1.5 rounded text-xs font-bold transition-all cursor-pointer ${
+                            adminEditLang === 'vi' ? 'bg-app-accent text-black' : 'text-app-muted hover:text-app-text'
+                          }`}
+                        >
+                          Tiếng Việt (VI)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleSwitchEditLang('en')}
+                          className={`px-3 py-1.5 rounded text-xs font-bold transition-all cursor-pointer ${
+                            adminEditLang === 'en' ? 'bg-app-accent text-black' : 'text-app-muted hover:text-app-text'
+                          }`}
+                        >
+                          English (EN)
+                        </button>
+                      </div>
+
+                      {/* AI Translation button */}
+                      <button
+                        type="button"
+                        onClick={handleAiTranslateToEnglish}
+                        disabled={isTranslating}
+                        className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Dịch toàn bộ CV từ Tiếng Việt sang Tiếng Anh sử dụng AI Claude"
+                      >
+                        {isTranslating ? (
+                          <>
+                            <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            Đang dịch...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="w-3.5 h-3.5 text-white animate-pulse" />
+                            Dịch sang Tiếng Anh bằng AI
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
                   {/* Basic Info & CV File Attachment */}
                   <div className="space-y-4">
                     <h4 className="text-sm font-bold uppercase tracking-wider text-app-accent border-b border-app-border pb-2">Thông tin cơ bản & File CV</h4>
@@ -1641,15 +1946,25 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
           
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-app-muted">
-            <button onClick={() => scrollToSection('about')} className="hover:text-app-accent transition-colors cursor-pointer">Giới thiệu</button>
-            <button onClick={() => scrollToSection('skills')} className="hover:text-app-accent transition-colors cursor-pointer">Kỹ năng</button>
-            <button onClick={() => scrollToSection('experience')} className="hover:text-app-accent transition-colors cursor-pointer">Kinh nghiệm</button>
-            <button onClick={() => scrollToSection('projects')} className="hover:text-app-accent transition-colors cursor-pointer">Dự án</button>
-            <button onClick={() => scrollToSection('education')} className="hover:text-app-accent transition-colors cursor-pointer">Học vấn</button>
-            <button onClick={() => scrollToSection('contact')} className="hover:text-app-accent transition-colors cursor-pointer">Liên hệ</button>
+            <button onClick={() => scrollToSection('about')} className="hover:text-app-accent transition-colors cursor-pointer">{t.navAbout}</button>
+            <button onClick={() => scrollToSection('skills')} className="hover:text-app-accent transition-colors cursor-pointer">{t.navSkills}</button>
+            <button onClick={() => scrollToSection('experience')} className="hover:text-app-accent transition-colors cursor-pointer">{t.navExperience}</button>
+            <button onClick={() => scrollToSection('projects')} className="hover:text-app-accent transition-colors cursor-pointer">{t.navProjects}</button>
+            <button onClick={() => scrollToSection('education')} className="hover:text-app-accent transition-colors cursor-pointer">{t.navEducation}</button>
+            <button onClick={() => scrollToSection('contact')} className="hover:text-app-accent transition-colors cursor-pointer">{t.navContact}</button>
           </nav>
 
           <div className="flex items-center gap-3">
+            {/* LANGUAGE TOGGLE BUTTON */}
+            <button 
+              onClick={() => setCurrentLang(prev => prev === 'vi' ? 'en' : 'vi')}
+              className="px-2.5 py-2 rounded-lg bg-app-card border border-app-border text-xs font-bold text-app-text hover:text-app-accent hover:border-app-accent/40 transition-all cursor-pointer flex items-center gap-1.5"
+              title={currentLang === 'vi' ? "Switch to English" : "Chuyển sang Tiếng Việt"}
+            >
+              <Globe className="w-3.5 h-3.5 text-app-accent" />
+              <span>{currentLang === 'vi' ? 'EN' : 'VI'}</span>
+            </button>
+
             {/* LIGHT/DARK MODE TOGGLE BUTTON */}
             <button 
               onClick={toggleTheme}
@@ -1663,7 +1978,7 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
               onClick={() => scrollToSection('contact')} 
               className="hidden sm:inline-flex items-center px-4 py-2 rounded-lg bg-app-accent text-black font-bold text-sm hover:opacity-90 transition-opacity shadow-lg shadow-app-accent/10 cursor-pointer"
             >
-              Liên hệ ngay
+              {t.connectNow}
             </button>
           </div>
         </div>
@@ -1692,7 +2007,7 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
             <h1 className="font-display text-4xl md:text-6xl font-extrabold tracking-tight text-app-text">
               {profileData.name}
             </h1>
-            <p className="font-display text-lg md:text-xl font-bold text-app-accent/95">
+            <p className="font-display text-xl md:text-2xl font-bold text-app-accent/95">
               {profileData.title}
             </p>
             <p className="text-sm md:text-base text-app-muted leading-relaxed max-w-lg mx-auto">
@@ -1707,7 +2022,7 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
               className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-app-accent text-black font-extrabold text-sm md:text-base hover:opacity-90 transition-all hover:scale-[1.02] shadow-lg shadow-app-accent/15 cursor-pointer"
             >
               <Mail className="w-4 h-4 text-black" />
-              Liên hệ với tôi
+              {t.contactMe}
             </a>
             <a 
               href={cvBlobUrl || profileData.cvUrl || "#"} 
@@ -1717,7 +2032,7 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
               className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-app-card border border-app-border text-app-text font-semibold text-sm md:text-base hover:bg-white/10 hover:border-app-accent/30 transition-all hover:scale-[1.02]"
             >
               <Download className="w-4 h-4 text-app-accent" />
-              Tải CV
+              {t.downloadCv}
             </a>
           </div>
         </section>
@@ -1733,7 +2048,7 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                   <div className="p-2 rounded-lg bg-app-accent/10 text-app-accent">
                     <Info className="w-5 h-5" />
                   </div>
-                  <h2 className="font-display text-2xl font-bold tracking-tight text-app-text">Giới thiệu bản thân</h2>
+                  <h2 className="font-display text-2xl font-bold tracking-tight text-app-text">{t.about}</h2>
                 </div>
                 <p className="text-app-muted text-base md:text-lg leading-relaxed whitespace-pre-line">
                   {profileData.about}
@@ -1747,7 +2062,7 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                     <div className="p-5 rounded-xl bg-app-card border border-app-border shadow-sm space-y-3 hover:border-app-accent/35 transition-all">
                       <h4 className="font-display text-sm font-bold uppercase tracking-wider text-app-accent flex items-center gap-2">
                         <Target className="w-4.5 h-4.5" />
-                        Mục tiêu ngắn hạn
+                        {t.shortGoal}
                       </h4>
                       <p className="text-xs text-app-muted leading-relaxed">
                         {profileData.shortTermGoal}
@@ -1758,7 +2073,7 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                     <div className="p-5 rounded-xl bg-app-card border border-app-border shadow-sm space-y-3 hover:border-app-accent/35 transition-all">
                       <h4 className="font-display text-sm font-bold uppercase tracking-wider text-app-accent flex items-center gap-2">
                         <Milestone className="w-4.5 h-4.5" />
-                        Mục tiêu dài hạn
+                        {t.longGoal}
                       </h4>
                       <p className="text-xs text-app-muted leading-relaxed">
                         {profileData.longTermGoal}
@@ -1774,7 +2089,7 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
               <div className="p-6 rounded-xl bg-app-card border border-app-border shadow-sm space-y-4">
                 <h3 className="font-display text-base font-bold text-app-text border-b border-app-border pb-2.5 flex items-center gap-2">
                   <Contact className="w-4 h-4 text-app-accent" />
-                  Thông tin liên hệ
+                  {t.contactInfo}
                 </h3>
                 
                 <div className="space-y-4 text-sm">
@@ -1782,7 +2097,7 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                     <div className="flex items-center gap-3">
                       <Calendar className="w-4.5 h-4.5 text-app-accent shrink-0" />
                       <div>
-                        <p className="text-[10px] uppercase font-bold text-app-muted tracking-wider">Ngày sinh</p>
+                        <p className="text-[10px] uppercase font-bold text-app-muted tracking-wider">{t.birthDate}</p>
                         <p className="font-semibold text-app-text">{profileData.birthDate}</p>
                       </div>
                     </div>
@@ -1792,7 +2107,7 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                     <div className="flex items-center gap-3">
                       <Phone className="w-4.5 h-4.5 text-app-accent shrink-0" />
                       <div>
-                        <p className="text-[10px] uppercase font-bold text-app-muted tracking-wider">Số điện thoại</p>
+                        <p className="text-[10px] uppercase font-bold text-app-muted tracking-wider">{t.phone}</p>
                         <p className="font-semibold text-app-text">{profileData.phone}</p>
                       </div>
                     </div>
@@ -1814,7 +2129,7 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                     <div className="flex items-center gap-3">
                       <MapPin className="w-4.5 h-4.5 text-app-accent shrink-0" />
                       <div>
-                        <p className="text-[10px] uppercase font-bold text-app-muted tracking-wider">Địa chỉ</p>
+                        <p className="text-[10px] uppercase font-bold text-app-muted tracking-wider">{t.address}</p>
                         <p className="font-semibold text-app-text">{profileData.address}</p>
                       </div>
                     </div>
@@ -1832,11 +2147,11 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
             <div className="p-2 rounded-lg bg-app-accent/10 text-app-accent">
               <Code className="w-5 h-5" />
             </div>
-            <h2 className="font-display text-2xl font-bold tracking-tight text-app-text">Kỹ năng chuyên môn</h2>
+            <h2 className="font-display text-2xl font-bold tracking-tight text-app-text">{t.skills}</h2>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {Object.entries(profileData.skills || {}).map(([category, items]) => (
+            {getSortedSkills(profileData.skills, currentLang).map(([category, items]) => (
               <div 
                 key={category} 
                 className="p-5 rounded-xl bg-app-card border border-app-border hover:border-app-accent/30 transition-all group shadow-sm"
@@ -1866,7 +2181,7 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
             <div className="p-2 rounded-lg bg-app-accent/10 text-app-accent">
               <Briefcase className="w-5 h-5" />
             </div>
-            <h2 className="font-display text-2xl font-bold tracking-tight text-app-text">Kinh nghiệm làm việc</h2>
+            <h2 className="font-display text-2xl font-bold tracking-tight text-app-text">{t.experience}</h2>
           </div>
 
           {/* Wrapper: absolute lane line + flex items */}
@@ -1931,7 +2246,7 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
             <div className="p-2 rounded-lg bg-app-accent/10 text-app-accent">
               <Laptop className="w-5 h-5" />
             </div>
-            <h2 className="font-display text-2xl font-bold tracking-tight text-app-text">Dự án triển khai</h2>
+            <h2 className="font-display text-2xl font-bold tracking-tight text-app-text">{t.projects}</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1983,7 +2298,7 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
             <div className="p-2 rounded-lg bg-app-accent/10 text-app-accent">
               <GraduationCap className="w-5 h-5" />
             </div>
-            <h2 className="font-display text-2xl font-bold tracking-tight text-app-text">Học vấn & Bằng cấp</h2>
+            <h2 className="font-display text-2xl font-bold tracking-tight text-app-text">{t.education}</h2>
           </div>
 
           <div className="p-6 rounded-xl bg-app-card border border-app-border hover:border-app-accent/30 transition-all flex flex-wrap items-center justify-between gap-4 shadow-sm">
@@ -2006,7 +2321,7 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
               )}
             </div>
             <span className="px-4 py-1.5 rounded-full text-xs font-bold bg-app-accent/15 text-app-accent border border-app-accent/20">
-              Tốt nghiệp: {profileData.education?.year}
+              {t.graduated}: {profileData.education?.year}
             </span>
           </div>
         </section>
@@ -2017,13 +2332,13 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
             <div className="p-2 rounded-lg bg-app-accent/10 text-app-accent">
               <Mail className="w-5 h-5" />
             </div>
-            <h2 className="font-display text-2xl font-bold tracking-tight text-app-text">Liên hệ</h2>
+            <h2 className="font-display text-2xl font-bold tracking-tight text-app-text">{t.contact}</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="space-y-4 md:col-span-1">
               <p className="text-sm text-app-muted leading-relaxed">
-                Bạn là nhà tuyển dụng muốn kết nối? Hãy gửi tin nhắn trực tiếp qua biểu mẫu hoặc qua thông tin liên hệ bên dưới:
+                {t.recruiterConnect}
               </p>
               
               <div className="space-y-3 pt-2">
@@ -2073,14 +2388,14 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
               {contactSuccess ? (
                 <div className="h-full flex flex-col items-center justify-center text-center space-y-3 py-8">
                   <CheckCircle className="w-12 h-12 text-app-accent animate-bounce" />
-                  <h4 className="font-display text-lg font-bold text-app-text">Gửi tin nhắn thành công!</h4>
-                  <p className="text-sm text-app-muted max-w-xs">Cảm ơn bạn đã liên hệ. Tôi sẽ phản hồi lại sớm nhất có thể.</p>
+                  <h4 className="font-display text-lg font-bold text-app-text">{t.contactSuccessTitle}</h4>
+                  <p className="text-sm text-app-muted max-w-xs">{t.contactSuccessDesc}</p>
                 </div>
               ) : (
                 <>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <label className="text-xs font-semibold text-app-muted">Tên của bạn</label>
+                      <label className="text-xs font-semibold text-app-muted">{t.yourName}</label>
                       <input 
                         type="text" 
                         placeholder="Nguyễn Văn A" 
@@ -2090,7 +2405,7 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-xs font-semibold text-app-muted">Địa chỉ Email</label>
+                      <label className="text-xs font-semibold text-app-muted">{t.emailAddress}</label>
                       <input 
                         type="email" 
                         placeholder="email@example.com" 
@@ -2101,10 +2416,10 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-app-muted">Nội dung tin nhắn</label>
+                    <label className="text-xs font-semibold text-app-muted">{t.messageContent}</label>
                     <textarea 
                       rows="4" 
-                      placeholder="Lời nhắn của bạn..." 
+                      placeholder={t.messagePlaceholder}
                       value={contactForm.message}
                       onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
                       className="w-full px-4 py-2.5 rounded-lg bg-app-bg border border-app-border text-sm focus:border-app-accent focus:outline-none transition-colors resize-none text-app-text"
@@ -2118,12 +2433,12 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                     {isContactLoading ? (
                       <>
                         <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
-                        Đang gửi...
+                        {t.sending}
                       </>
                     ) : (
                       <>
                         <Send className="w-4 h-4 text-black" />
-                        Gửi tin nhắn
+                        {t.sendBtn}
                       </>
                     )}
                   </button>
@@ -2141,7 +2456,7 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
             © {new Date().getFullYear()} {profileData.name}. All rights reserved.
           </p>
           <div className="flex gap-4">
-            <button onClick={() => scrollToSection('hero')} className="hover:text-app-accent transition-colors cursor-pointer">Đầu trang</button>
+            <button onClick={() => scrollToSection('hero')} className="hover:text-app-accent transition-colors cursor-pointer">{t.backToTop}</button>
           </div>
         </div>
       </footer>
