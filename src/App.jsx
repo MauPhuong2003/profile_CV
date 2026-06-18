@@ -1910,7 +1910,7 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                       {exp.skills && exp.skills.length > 0 && (
                         <div className="flex flex-wrap gap-1.5 pt-2">
                           {exp.skills.map((skill, i) => (
-                            <span key={i} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-app-bg text-app-text border border-app-border hover:border-app-accent/30 hover:text-app-accent transition-all cursor-default">
+                            <span key={i} className="px-2 py-1 rounded-lg bg-app-bg text-[10px] font-bold text-app-accent border border-app-border">
                               {skill}
                             </span>
                           ))}
@@ -1952,7 +1952,7 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                   {renderDescriptionList(proj.description)}
                    <div className="flex flex-wrap gap-1.5">
                     {proj.tech?.map((t, i) => (
-                      <span key={i} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-app-bg text-app-text border border-app-border hover:border-app-accent/30 hover:text-app-accent transition-all cursor-default">
+                      <span key={i} className="px-2 py-1 rounded-lg bg-app-bg text-[10px] font-bold text-app-accent border border-app-border">
                         {t}
                       </span>
                     ))}
@@ -1997,7 +1997,7 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                   {profileData.education.skills.split(',').map(s => s.trim()).filter(Boolean).map((skill, index) => (
                     <span 
                       key={index}
-                      className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-app-bg text-app-text border border-app-border hover:border-app-accent/30 hover:text-app-accent transition-all cursor-default"
+                      className="px-2 py-1 rounded-lg bg-app-bg text-[10px] font-bold text-app-accent border border-app-border"
                     >
                       {skill}
                     </span>
