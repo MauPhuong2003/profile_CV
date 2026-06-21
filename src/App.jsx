@@ -4,7 +4,7 @@ import {
   Code, Download, Settings, Plus, Trash2, 
   CheckCircle, FileText, Send, Lock, Eye, EyeOff, Key, Laptop, Info, Contact, Globe,
   ArrowUpRight, Sun, Moon, ArrowLeft, LogOut, Upload, File,
-  Calendar, Phone, MapPin, Target, Milestone
+  Calendar, Phone, MapPin, Target, Milestone, Trophy
 } from 'lucide-react';
 import { db } from './firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -42,7 +42,9 @@ const uiTranslations = {
     sendBtn: "Gửi tin nhắn",
     sending: "Đang gửi...",
     backToTop: "Đầu trang",
-    connectNow: "Liên hệ ngay"
+    connectNow: "Liên hệ ngay",
+    awards: "Giải thưởng & Thành tựu",
+    navAwards: "Giải thưởng"
   },
   en: {
     about: "About Me",
@@ -76,9 +78,12 @@ const uiTranslations = {
     sendBtn: "Send Message",
     sending: "Sending...",
     backToTop: "Back to Top",
-    connectNow: "Connect Now"
+    connectNow: "Connect Now",
+    awards: "Awards & Achievements",
+    navAwards: "Awards"
   }
 };
+
 
 // Default Profile Data (blank — fill via Admin panel)
 const defaultProfile = {
@@ -106,6 +111,7 @@ const defaultProfile = {
     year: "",
     skills: ""
   },
+  awards: [],
   contact: {
     email: "",
     linkedin: "",
@@ -749,6 +755,34 @@ ${JSON.stringify(viProfile, null, 2)}`
     }));
   };
 
+  // Add / Edit / Delete Awards
+  const handleAddAward = () => {
+    setEditData(prev => ({
+      ...prev,
+      awards: [
+        ...(prev.awards || []),
+        { title: 'Giải thưởng mới', year: new Date().getFullYear().toString(), issuer: 'Tổ chức cấp giải' }
+      ]
+    }));
+  };
+
+  const handleUpdateAward = (index, field, val) => {
+    const list = [...(editData.awards || [])];
+    list[index] = { ...list[index], [field]: val };
+    setEditData(prev => ({
+      ...prev,
+      awards: list
+    }));
+  };
+
+  const handleDeleteAward = (index) => {
+    const list = (editData.awards || []).filter((_, i) => i !== index);
+    setEditData(prev => ({
+      ...prev,
+      awards: list
+    }));
+  };
+
   // Save updates and return to main page
   const handleSaveManual = async () => {
     setIsSaving(true);
@@ -886,6 +920,13 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
     "year": "2020",
     "skills": "Các kỹ năng đạt được (ví dụ: Lập trình Java, Làm việc nhóm, Giải quyết vấn đề)"
   },
+  "awards": [
+    {
+      "title": "Tên giải thưởng hoặc chứng chỉ",
+      "year": "2023",
+      "issuer": "Tổ chức cấp (ví dụ: Google, Trường học)"
+    }
+  ],
   "contact": {
     "email": "email@example.com",
     "linkedin": "https://linkedin.com/in/...",
@@ -914,6 +955,7 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
       // Preserve existing non-AI field values (like file CV)
       parsed.cvUrl = profileData.cvUrl;
       parsed.avatar = profileData.avatar;
+      parsed.awards = parsed.awards || [];
       
       setParsedAiData(parsed);
     } catch (err) {
@@ -1727,6 +1769,65 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                     </div>
                   </div>
 
+                  {/* Awards & Achievements Editor */}
+                  <div className="space-y-4 pt-4 border-t border-app-border">
+                    <div className="flex items-center justify-between border-b border-app-border pb-2">
+                      <h4 className="text-sm font-bold uppercase tracking-wider text-app-accent">Giải thưởng & Thành tựu</h4>
+                      <button 
+                        onClick={handleAddAward}
+                        className="px-3 py-1.5 rounded-lg bg-app-accent text-black font-bold text-xs hover:opacity-90 transition-opacity flex items-center gap-1 cursor-pointer"
+                      >
+                        <Plus className="w-4 h-4 text-black" /> Thêm giải thưởng
+                      </button>
+                    </div>
+
+                    <div className="space-y-4">
+                      {editData.awards?.map((award, idx) => (
+                        <div key={idx} className="p-4 rounded-xl bg-app-bg/50 border border-app-border space-y-3 relative">
+                          <button 
+                            onClick={() => handleDeleteAward(idx)}
+                            className="absolute right-4 top-4 p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/10 transition-colors cursor-pointer"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                          
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div className="space-y-1 sm:col-span-2">
+                              <label className="text-[10px] uppercase font-bold text-app-muted">Tên giải thưởng / chứng nhận</label>
+                              <input 
+                                type="text" 
+                                value={award.title} 
+                                onChange={(e) => handleUpdateAward(idx, 'title', e.target.value)}
+                                className="w-full px-2.5 py-1.5 rounded bg-app-bg border border-app-border text-xs text-app-text focus:border-app-accent focus:outline-none"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-[10px] uppercase font-bold text-app-muted">Năm đạt giải</label>
+                              <input 
+                                type="text" 
+                                value={award.year} 
+                                onChange={(e) => handleUpdateAward(idx, 'year', e.target.value)}
+                                className="w-full px-2.5 py-1.5 rounded bg-app-bg border border-app-border text-xs text-app-text focus:border-app-accent focus:outline-none font-mono"
+                              />
+                            </div>
+                            <div className="space-y-1 sm:col-span-3">
+                              <label className="text-[10px] uppercase font-bold text-app-muted">Tổ chức cấp / Chi tiết (Tùy chọn)</label>
+                              <input 
+                                type="text" 
+                                value={award.issuer || ''} 
+                                onChange={(e) => handleUpdateAward(idx, 'issuer', e.target.value)}
+                                className="w-full px-2.5 py-1.5 rounded bg-app-bg border border-app-border text-xs text-app-text focus:border-app-accent focus:outline-none"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      {(!editData.awards || editData.awards.length === 0) && (
+                        <p className="text-xs text-app-muted italic">Chưa cấu hình giải thưởng nào.</p>
+                      )}
+                    </div>
+                  </div>
+
                   {/* Manual Edit Action bottom */}
                   <div className="flex justify-end items-center gap-3 border-t border-app-border pt-4">
                     {saveSuccess && (
@@ -1896,6 +1997,16 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                                   ))}
                                 </ul>
                               </div>
+                              {parsedAiData.awards && parsedAiData.awards.length > 0 && (
+                                <div>
+                                  <strong className="text-app-text">Giải thưởng:</strong>
+                                  <ul className="list-disc pl-4 mt-1 space-y-1">
+                                    {parsedAiData.awards.map((award, i) => (
+                                      <li key={i}>{award.title} ({award.year}) {award.issuer ? `- ${award.issuer}` : ''}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
                             </div>
                           ) : (
                             <div className="flex-1 p-4 rounded-lg bg-app-bg/50 border border-app-border text-xs text-red-500 flex items-center justify-center">
@@ -1951,6 +2062,9 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
             <button onClick={() => scrollToSection('experience')} className="hover:text-app-accent transition-colors cursor-pointer">{t.navExperience}</button>
             <button onClick={() => scrollToSection('projects')} className="hover:text-app-accent transition-colors cursor-pointer">{t.navProjects}</button>
             <button onClick={() => scrollToSection('education')} className="hover:text-app-accent transition-colors cursor-pointer">{t.navEducation}</button>
+            {profileData.awards && profileData.awards.length > 0 && (
+              <button onClick={() => scrollToSection('awards')} className="hover:text-app-accent transition-colors cursor-pointer">{t.navAwards}</button>
+            )}
             <button onClick={() => scrollToSection('contact')} className="hover:text-app-accent transition-colors cursor-pointer">{t.navContact}</button>
           </nav>
 
@@ -2343,7 +2457,47 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
           </div>
         </section>
 
-        {/* SECTION 7: CONTACT */}
+        {/* SECTION 7: AWARDS */}
+        {profileData.awards && profileData.awards.length > 0 && (
+          <section id="awards" className="scroll-mt-24 space-y-6">
+            <div className="flex items-center gap-3 border-b border-app-border pb-4">
+              <div className="p-2 rounded-lg bg-app-accent/10 text-app-accent">
+                <Trophy className="w-5 h-5" />
+              </div>
+              <h2 className="font-display text-2xl font-bold tracking-tight text-app-text">{t.awards}</h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {profileData.awards.map((award, idx) => (
+                <div 
+                  key={idx} 
+                  className="flex flex-col justify-between p-6 rounded-xl bg-app-card border border-app-border hover:border-app-accent/30 transition-all hover:scale-[1.01] group relative overflow-hidden shadow-sm relative"
+                >
+                  {/* Decorative background glow */}
+                  <div className="absolute -bottom-16 -right-16 w-32 h-32 bg-app-accent/5 rounded-full blur-2xl group-hover:bg-app-accent/10 transition-all pointer-events-none"></div>
+                  
+                  <div className="space-y-2 relative z-10">
+                    <div className="flex items-start justify-between gap-4">
+                      <h3 className="font-display text-lg font-bold text-app-text group-hover:text-app-accent transition-colors leading-snug">
+                        {award.title}
+                      </h3>
+                      <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-app-accent/10 text-app-accent border border-app-accent/20 shrink-0 font-mono">
+                        {award.year}
+                      </span>
+                    </div>
+                    {award.issuer && (
+                      <p className="text-sm text-app-muted leading-relaxed">
+                        {award.issuer}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* SECTION 8: CONTACT */}
         <section id="contact" className="scroll-mt-24 space-y-8">
           <div className="flex items-center gap-3 border-b border-app-border pb-4">
             <div className="p-2 rounded-lg bg-app-accent/10 text-app-accent">
