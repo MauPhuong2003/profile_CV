@@ -2039,10 +2039,10 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
 
         {/* SECTION 2: ABOUT & CONTACT INFO SIDE-BY-SIDE */}
         <section id="about" className="scroll-mt-24">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
             
             {/* Left Column: Giới thiệu bản thân & Mục tiêu */}
-            <div className="md:col-span-2 space-y-8">
+            <div className="md:col-span-3 space-y-8">
               <div className="space-y-6">
                 <div className="flex items-center gap-3 border-b border-app-border pb-4">
                   <div className="p-2 rounded-lg bg-app-accent/10 text-app-accent">
@@ -2085,55 +2085,60 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
             </div>
 
             {/* Right Column: Thông tin liên hệ Card */}
-            <div className="md:col-span-1">
-              <div className="p-6 rounded-xl bg-app-card border border-app-border shadow-sm space-y-4">
-                <h3 className="font-display text-base font-bold text-app-text border-b border-app-border pb-2.5 flex items-center gap-2">
-                  <Contact className="w-4 h-4 text-app-accent" />
-                  {t.contactInfo}
-                </h3>
-                
-                <div className="space-y-4 text-sm">
-                  {profileData.birthDate && (
-                    <div className="flex items-center gap-3">
-                      <Calendar className="w-4.5 h-4.5 text-app-accent shrink-0" />
-                      <div>
-                        <p className="text-[10px] uppercase font-bold text-app-muted tracking-wider">{t.birthDate}</p>
-                        <p className="font-semibold text-app-text">{profileData.birthDate}</p>
-                      </div>
-                    </div>
-                  )}
+            <div className="md:col-span-2">
+              <div className="p-6 rounded-xl bg-app-card border border-app-border hover:border-app-accent/30 transition-all hover:scale-[1.005] relative overflow-hidden shadow-sm group">
+                {/* Decorative background glow */}
+                <div className="absolute -bottom-12 -right-12 w-28 h-28 bg-app-accent/5 rounded-full blur-2xl group-hover:bg-app-accent/10 transition-all pointer-events-none"></div>
 
-                  {profileData.phone && (
-                    <div className="flex items-center gap-3">
-                      <Phone className="w-4.5 h-4.5 text-app-accent shrink-0" />
-                      <div>
-                        <p className="text-[10px] uppercase font-bold text-app-muted tracking-wider">{t.phone}</p>
-                        <p className="font-semibold text-app-text">{profileData.phone}</p>
+                <div className="space-y-4 relative z-10">
+                  <h3 className="font-display text-base font-bold text-app-text border-b border-app-border pb-2.5 flex items-center gap-2 group-hover:text-app-accent transition-colors">
+                    <Contact className="w-4 h-4 text-app-accent" />
+                    {t.contactInfo}
+                  </h3>
+                  
+                  <div className="space-y-4 text-sm">
+                    {profileData.birthDate && (
+                      <div className="flex items-center gap-3">
+                        <Calendar className="w-4.5 h-4.5 text-app-accent shrink-0" />
+                        <div>
+                          <p className="text-[10px] uppercase font-bold text-app-muted tracking-wider">{t.birthDate}</p>
+                          <p className="font-semibold text-app-text">{profileData.birthDate}</p>
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {profileData.contact?.email && (
-                    <div className="flex items-center gap-3">
-                      <Mail className="w-4.5 h-4.5 text-app-accent shrink-0" />
-                      <div>
-                        <p className="text-[10px] uppercase font-bold text-app-muted tracking-wider">Email</p>
-                        <p className="font-semibold text-app-text truncate max-w-[170px]" title={profileData.contact.email}>
-                          {profileData.contact.email}
-                        </p>
+                    {profileData.phone && (
+                      <div className="flex items-center gap-3">
+                        <Phone className="w-4.5 h-4.5 text-app-accent shrink-0" />
+                        <div>
+                          <p className="text-[10px] uppercase font-bold text-app-muted tracking-wider">{t.phone}</p>
+                          <p className="font-semibold text-app-text">{profileData.phone}</p>
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {profileData.address && (
-                    <div className="flex items-center gap-3">
-                      <MapPin className="w-4.5 h-4.5 text-app-accent shrink-0" />
-                      <div>
-                        <p className="text-[10px] uppercase font-bold text-app-muted tracking-wider">{t.address}</p>
-                        <p className="font-semibold text-app-text">{profileData.address}</p>
+                    {profileData.contact?.email && (
+                      <div className="flex items-center gap-3">
+                        <Mail className="w-4.5 h-4.5 text-app-accent shrink-0" />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[10px] uppercase font-bold text-app-muted tracking-wider">Email</p>
+                          <p className="font-semibold text-app-text break-all" title={profileData.contact.email}>
+                            {profileData.contact.email}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
+
+                    {profileData.address && (
+                      <div className="flex items-center gap-3">
+                        <MapPin className="w-4.5 h-4.5 text-app-accent shrink-0" />
+                        <div>
+                          <p className="text-[10px] uppercase font-bold text-app-muted tracking-wider">{t.address}</p>
+                          <p className="font-semibold text-app-text">{profileData.address}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -2154,21 +2159,26 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
             {getSortedSkills(profileData.skills, currentLang).map(([category, items]) => (
               <div 
                 key={category} 
-                className="p-5 rounded-xl bg-app-card border border-app-border hover:border-app-accent/30 transition-all group shadow-sm"
+                className="p-5 rounded-xl bg-app-card border border-app-border hover:border-app-accent/30 transition-all hover:scale-[1.005] relative overflow-hidden group shadow-sm"
               >
-                <h3 className="font-display text-app-accent font-bold text-lg mb-4 flex items-center justify-between">
-                  {category}
-                  <span className="w-2 h-2 rounded-full bg-app-accent/40 group-hover:bg-app-accent transition-all"></span>
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {items.map((skill, index) => (
-                    <span 
-                      key={index} 
-                      className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-app-bg text-app-text border border-app-border hover:border-app-accent/30 hover:text-app-accent transition-all cursor-default"
-                    >
-                      {skill}
-                    </span>
-                  ))}
+                {/* Decorative background glow */}
+                <div className="absolute -bottom-12 -right-12 w-28 h-28 bg-app-accent/5 rounded-full blur-2xl group-hover:bg-app-accent/10 transition-all pointer-events-none"></div>
+
+                <div className="relative z-10 space-y-4">
+                  <h3 className="font-display text-app-accent font-bold text-lg flex items-center justify-between">
+                    {category}
+                    <span className="w-2 h-2 rounded-full bg-app-accent/40 group-hover:bg-app-accent transition-all"></span>
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {items.map((skill, index) => (
+                      <span 
+                        key={index} 
+                        className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-app-bg text-app-text border border-app-border hover:border-app-accent/30 hover:text-app-accent transition-all cursor-default"
+                      >
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
             ))}
@@ -2208,12 +2218,12 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                       {/* Header: company + period badge */}
                       <div className="flex flex-wrap items-start justify-between gap-2">
                         <div>
-                          <h3 className="font-display text-base font-bold text-app-text group-hover:text-app-accent transition-colors">
+                          <h3 className="font-display text-base font-bold text-app-accent">
                             {exp.company}
                           </h3>
-                          <p className="text-sm font-semibold text-app-accent/90 mt-0.5">{exp.role}</p>
+                          <p className="text-sm font-semibold text-app-text group-hover:text-app-accent transition-colors mt-0.5">{exp.role}</p>
                         </div>
-                        <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-app-bg border border-app-border text-app-muted shrink-0">
+                        <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-app-accent/10 text-app-accent border border-app-accent/20 shrink-0">
                           {exp.period}
                         </span>
                       </div>
@@ -2301,28 +2311,35 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
             <h2 className="font-display text-2xl font-bold tracking-tight text-app-text">{t.education}</h2>
           </div>
 
-          <div className="p-6 rounded-xl bg-app-card border border-app-border hover:border-app-accent/30 transition-all flex flex-wrap items-center justify-between gap-4 shadow-sm">
-            <div className="space-y-1">
-              <h3 className="font-display text-lg font-bold text-app-text">
-                {profileData.education?.school}
-              </h3>
-              <p className="text-sm text-app-muted">{profileData.education?.major}</p>
-              {profileData.education?.skills && (
-                <div className="flex flex-wrap gap-1.5 pt-2">
-                  {profileData.education.skills.split(',').map(s => s.trim()).filter(Boolean).map((skill, index) => (
-                    <span 
-                      key={index}
-                      className="px-2.5 py-1 rounded-lg bg-app-bg text-xs font-bold text-app-accent border border-app-border"
-                    >
-                      {skill}
-                    </span>
-                  ))}
-                </div>
-              )}
+          <div className="p-6 rounded-xl bg-app-card border border-app-border hover:border-app-accent/30 transition-all hover:scale-[1.005] relative overflow-hidden space-y-3 shadow-sm group">
+            {/* Decorative background glow */}
+            <div className="absolute -bottom-12 -right-12 w-28 h-28 bg-app-accent/5 rounded-full blur-2xl group-hover:bg-app-accent/10 transition-all pointer-events-none"></div>
+
+            <div className="space-y-3 relative z-10">
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <h3 className="font-display text-lg font-bold text-app-text group-hover:text-app-accent transition-colors">
+                  {profileData.education?.school}
+                </h3>
+                <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-app-accent/10 text-app-accent border border-app-accent/20 shrink-0">
+                  {t.graduated}: {profileData.education?.year}
+                </span>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm text-app-muted">{profileData.education?.major}</p>
+                {profileData.education?.skills && (
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {profileData.education.skills.split(',').map(s => s.trim()).filter(Boolean).map((skill, index) => (
+                      <span 
+                        key={index}
+                        className="px-2.5 py-1 rounded-lg bg-app-bg text-xs font-bold text-app-accent border border-app-border"
+                      >
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
-            <span className="px-4 py-1.5 rounded-full text-xs font-bold bg-app-accent/15 text-app-accent border border-app-accent/20">
-              {t.graduated}: {profileData.education?.year}
-            </span>
           </div>
         </section>
 
