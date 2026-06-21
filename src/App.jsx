@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { 
   Sparkles, Mail, Linkedin, Briefcase, GraduationCap, 
   Code, Download, Settings, Plus, Trash2, 
-  CheckCircle, FileText, Send, Lock, Eye, EyeOff, Key, Laptop, Info, Contact, Globe,
+  CheckCircle, Send, Lock, Eye, EyeOff, Key, Laptop, Info, Contact, Globe,
   ArrowUpRight, Sun, Moon, ArrowLeft, LogOut, Upload, File,
   Calendar, Phone, MapPin, Target, Milestone, Trophy
 } from 'lucide-react';
@@ -44,7 +44,8 @@ const uiTranslations = {
     backToTop: "Đầu trang",
     connectNow: "Liên hệ ngay",
     awards: "Giải thưởng & Thành tựu",
-    navAwards: "Giải thưởng"
+    navAwards: "Giải thưởng",
+    awarded: "Đạt giải"
   },
   en: {
     about: "About Me",
@@ -80,7 +81,8 @@ const uiTranslations = {
     backToTop: "Back to Top",
     connectNow: "Connect Now",
     awards: "Awards & Achievements",
-    navAwards: "Awards"
+    navAwards: "Awards",
+    awarded: "Awarded"
   }
 };
 
@@ -194,8 +196,7 @@ const TechInput = ({ value, onChange }) => {
 function App() {
   // Main CV State — persist to localStorage so profile survives reload / new tabs
   const [currentLang, setCurrentLang] = useState('vi');
-  const [adminEditLang, setAdminEditLang] = useState('vi');
-  const [isTranslating, setIsTranslating] = useState(false);
+  const adminEditLang = 'vi';
 
   // Main CV State — persist both VI and EN versions in a single state object
   const [allProfiles, setAllProfiles] = useState(() => {
@@ -226,6 +227,9 @@ function App() {
   });
 
   const profileData = allProfiles[currentLang];
+  const awardsToDisplay = (profileData?.awards && profileData.awards.length > 0) 
+    ? profileData.awards 
+    : (allProfiles?.vi?.awards || []);
   
   // Custom SPA Router State ('cv' | 'admin')
   const [currentRoute, setCurrentRoute] = useState(() => {
@@ -244,7 +248,7 @@ function App() {
   const [isAuthed, setIsAuthed] = useState(() => {
     return sessionStorage.getItem('admin_authed') === 'true';
   });
-  const [adminTab, setAdminTab] = useState('manual'); // 'manual' | 'ai'
+  const [adminTab, setAdminTab] = useState('basic'); // 'basic' | 'ai' | 'skills' | 'experience' | 'projects' | 'education' | 'awards' | 'contact'
 
   // Manual Edit State (cloned from profileData when editing starts)
   const [editData, setEditData] = useState(profileData);
@@ -440,94 +444,7 @@ function App() {
     }
   };
 
-  const handleSwitchEditLang = (newLang) => {
-    if (newLang === adminEditLang) return;
-    
-    setAllProfiles(prev => ({
-      ...prev,
-      [adminEditLang]: editData
-    }));
 
-    setAdminEditLang(newLang);
-    setEditData(allProfiles[newLang]);
-    setUploadedAvatarName(allProfiles[newLang].avatar?.startsWith('data:') ? 'Ảnh từ thiết bị' : '');
-  };
-
-  const handleAiTranslateToEnglish = async () => {
-    if (!apiKey.trim()) {
-      alert('Vui lòng nhập Anthropic API Key ở tab "Tạo bằng AI (Anthropic)" để sử dụng tính năng dịch bằng AI!');
-      return;
-    }
-    
-    setIsTranslating(true);
-    try {
-      let viProfile = allProfiles.vi;
-      if (adminEditLang === 'vi') {
-        viProfile = editData;
-        setAllProfiles(prev => ({
-          ...prev,
-          vi: editData
-        }));
-      }
-      
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-          'dangerously-allow-html-user-system-messages': 'true'
-        },
-        body: JSON.stringify({
-          model: 'claude-3-5-sonnet-20241022',
-          max_tokens: 4000,
-          messages: [{
-            role: "user",
-            content: `Bạn là chuyên gia dịch thuật CV công nghệ thông tin chuyên nghiệp. Hãy dịch toàn bộ nội dung của CV Tiếng Việt dạng JSON sau đây sang Tiếng Anh. 
-Yêu cầu:
-1. Dịch đúng thuật ngữ chuyên ngành CNTT, ngữ pháp chuẩn Mỹ tự nhiên và chuyên nghiệp.
-2. Giữ nguyên cấu trúc các keys của JSON ở cấp cao nhất, chỉ dịch các values là chuỗi ký tự (hoặc mảng chuỗi). Riêng đối với object 'skills', bạn CẦN dịch cả các keys (là tên các nhóm kỹ năng, ví dụ "Hệ thống & Hạ tầng" -> "Systems & Infrastructure", "Triển khai & Tích hợp" -> "Deployment & Integration", "Công cụ & Quy trình" -> "Tools & Processes") sang Tiếng Anh cho phù hợp.
-3. Tuyệt đối giữ nguyên giá trị liên kết (như URL hình ảnh, email, số điện thoại, link github/linkedin) và thời gian (như năm tốt nghiệp, thời kỳ làm việc dạng "2022 - 2024").
-4. Trả về định dạng JSON thuần túy, không chứa markdown hay giải thích gì khác.
-
-Dữ liệu JSON:
-${JSON.stringify(viProfile, null, 2)}`
-          }]
-        })
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`API Error (${response.status}): ${errorText}`);
-      }
-
-      const data = await response.json();
-      const contentText = data.content[0]?.text;
-      
-      if (!contentText) {
-        throw new Error("Không nhận được nội dung dịch từ API.");
-      }
-
-      const parsed = extractJSON(contentText);
-      
-      parsed.avatar = viProfile.avatar;
-      parsed.cvUrl = viProfile.cvUrl;
-      
-      setEditData(parsed);
-      setAdminEditLang('en');
-      setAllProfiles(prev => ({
-        ...prev,
-        en: parsed
-      }));
-      
-      alert('Dịch thành công! Đã chuyển sang chế độ chỉnh sửa Tiếng Anh với bản dịch từ AI. Vui lòng kiểm tra lại và nhấn "Lưu Profile" để lưu lại.');
-    } catch (err) {
-      console.error(err);
-      alert('Có lỗi xảy ra khi dịch: ' + (err.message || 'Lỗi không xác định'));
-    } finally {
-      setIsTranslating(false);
-    }
-  };
 
   // Toggle Theme between Light & Dark Mode
   const toggleTheme = () => {
@@ -1057,7 +974,7 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
   // ==================== ROUTE 1: ADMIN VIEW ====================
   if (currentRoute === 'admin') {
     return (
-      <div className="min-h-screen bg-app-bg text-app-text transition-colors duration-300 font-sans">
+      <div className="min-h-screen bg-app-bg text-app-text transition-colors duration-300 font-sans md:h-screen md:overflow-hidden">
         
         {/* Theme switcher floating in admin page too */}
         <div className="absolute top-4 right-4 z-50 flex gap-2">
@@ -1138,10 +1055,10 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
         ) : (
           
           // ADMIN CONTROL PANEL DASHBOARD (Full screen)
-          <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+          <div className="max-w-5xl mx-auto px-4 py-8 space-y-6 md:py-6 md:h-full md:max-h-screen md:flex md:flex-col md:gap-6 md:space-y-0 md:overflow-hidden">
             
             {/* Admin Dashboard Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-2xl bg-app-card border border-app-border shadow-xl">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-2xl bg-app-card border border-app-border shadow-xl md:shrink-0">
               <div className="flex items-center gap-3">
                 <div className="p-3 rounded-xl bg-app-accent/10 text-app-accent border border-app-accent/20">
                   <Settings className="w-6 h-6 animate-spin" style={{ animationDuration: '8s' }} />
@@ -1170,90 +1087,56 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
               </div>
             </div>
 
-            {/* Admin Navigation Tabs */}
-            <div className="flex border-b border-app-border bg-app-card rounded-xl p-1 shadow-md">
-              <button 
-                onClick={() => setAdminTab('manual')}
-                className={`flex-1 py-3 px-4 rounded-lg font-display font-bold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer ${
-                  adminTab === 'manual' 
-                    ? 'bg-app-accent text-black shadow-lg shadow-app-accent/15 font-extrabold' 
-                    : 'text-app-muted hover:text-app-text'
-                }`}
-              >
-                <FileText className="w-4 h-4" />
-                Chỉnh sửa thủ công
-              </button>
-              <button 
-                onClick={() => setAdminTab('ai')}
-                className={`flex-1 py-3 px-4 rounded-lg font-display font-bold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer ${
-                  adminTab === 'ai' 
-                    ? 'bg-app-accent text-black shadow-lg shadow-app-accent/15 font-extrabold' 
-                    : 'text-app-muted hover:text-app-text'
-                }`}
-              >
-                <Sparkles className="w-4 h-4" />
-                Tạo bằng AI (Anthropic)
-              </button>
-            </div>
-
-            {/* Admin Main Editor Body */}
-            <div className="p-6 rounded-2xl bg-app-card border border-app-border shadow-xl min-h-[500px]">
+            {/* Admin Layout Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 md:flex-1 md:min-h-0">
               
-              {/* TAB 1: MANUAL EDIT */}
-              {adminTab === 'manual' && (
-                <div className="space-y-8">
-                  {/* Language Selector for Editing */}
-                  <div className="p-4 rounded-xl bg-app-bg/50 border border-app-border flex flex-wrap items-center justify-between gap-4">
-                    <div className="space-y-1">
-                      <p className="text-sm font-bold text-app-text">Ngôn ngữ chỉnh sửa (Editing Language)</p>
-                      <p className="text-xs text-app-muted">Chọn ngôn ngữ để nhập thông tin CV tương ứng</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="flex rounded-lg bg-app-card p-1 border border-app-border">
-                        <button
-                          type="button"
-                          onClick={() => handleSwitchEditLang('vi')}
-                          className={`px-3 py-1.5 rounded text-xs font-bold transition-all cursor-pointer ${
-                            adminEditLang === 'vi' ? 'bg-app-accent text-black' : 'text-app-muted hover:text-app-text'
-                          }`}
-                        >
-                          Tiếng Việt (VI)
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleSwitchEditLang('en')}
-                          className={`px-3 py-1.5 rounded text-xs font-bold transition-all cursor-pointer ${
-                            adminEditLang === 'en' ? 'bg-app-accent text-black' : 'text-app-muted hover:text-app-text'
-                          }`}
-                        >
-                          English (EN)
-                        </button>
-                      </div>
+              {/* Vertical Sidebar Menu */}
+              <div className="md:col-span-1 flex flex-col gap-2 md:h-full md:overflow-y-auto">
+                <div className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-app-muted/60">
+                  Menu Quản lý
+                </div>
+                
+                {[
+                  { id: 'basic', label: 'Thông tin chung', icon: Info },
+                  { id: 'skills', label: 'Kỹ năng', icon: Code },
+                  { id: 'experience', label: 'Kinh nghiệm', icon: Briefcase },
+                  { id: 'projects', label: 'Dự án', icon: Target },
+                  { id: 'education', label: 'Học vấn', icon: GraduationCap },
+                  { id: 'awards', label: 'Giải thưởng', icon: Trophy },
+                  { id: 'contact', label: 'Liên hệ & Cài đặt', icon: Contact },
+                  { id: 'ai', label: 'Tạo bằng AI (Claude)', icon: Sparkles, highlight: true }
+                ].map((item) => {
+                  const Icon = item.icon;
+                  const isActive = adminTab === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setAdminTab(item.id)}
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-sm font-bold transition-all border cursor-pointer ${
+                        isActive
+                          ? item.highlight 
+                            ? 'bg-gradient-to-r from-indigo-500/20 to-purple-500/20 border-indigo-500/50 text-indigo-400 font-extrabold shadow-lg shadow-indigo-500/5'
+                            : 'bg-app-accent text-black border-app-accent font-extrabold shadow-lg shadow-app-accent/15'
+                          : item.highlight
+                            ? 'bg-indigo-950/20 border-indigo-500/10 text-indigo-300 hover:bg-indigo-500/15'
+                            : 'bg-app-card/60 border-app-border/40 text-app-muted hover:text-app-text hover:bg-app-card'
+                      }`}
+                    >
+                      <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'scale-110' : ''}`} />
+                      <span className="truncate">{item.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
 
-                      {/* AI Translation button */}
-                      <button
-                        type="button"
-                        onClick={handleAiTranslateToEnglish}
-                        disabled={isTranslating}
-                        className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                        title="Dịch toàn bộ CV từ Tiếng Việt sang Tiếng Anh sử dụng AI Claude"
-                      >
-                        {isTranslating ? (
-                          <>
-                            <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                            Đang dịch...
-                          </>
-                        ) : (
-                          <>
-                            <Sparkles className="w-3.5 h-3.5 text-white animate-pulse" />
-                            Dịch sang Tiếng Anh bằng AI
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                  {/* Basic Info & CV File Attachment */}
-                  <div className="space-y-4">
+              {/* Admin Main Editor Body (Right panel) */}
+              <div className="md:col-span-3 p-6 rounded-2xl bg-app-card border border-app-border shadow-xl min-h-[500px] md:h-full md:overflow-y-auto custom-scrollbar">
+                
+
+                {/* Basic Info & CV File Attachment */}
+                  {adminTab === 'basic' && (
+                    <div className="space-y-4">
                     <h4 className="text-sm font-bold uppercase tracking-wider text-app-accent border-b border-app-border pb-2">Thông tin cơ bản & File CV</h4>
                     
                     {/* CV File Attachment block */}
@@ -1437,8 +1320,10 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                       </div>
                     </div>
                   </div>
+                )}
 
-                  {/* Skills Editor */}
+                {/* Skills Editor */}
+                {adminTab === 'skills' && (
                   <div className="space-y-4">
                     <h4 className="text-sm font-bold uppercase tracking-wider text-app-accent border-b border-app-border pb-2">Kỹ năng</h4>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -1482,8 +1367,10 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                       ))}
                     </div>
                   </div>
+                )}
 
-                  {/* Experience Editor */}
+                {/* Experience Editor */}
+                {adminTab === 'experience' && (
                   <div className="space-y-4">
                     <div className="flex items-center justify-between border-b border-app-border pb-2">
                       <h4 className="text-sm font-bold uppercase tracking-wider text-app-accent">Kinh nghiệm làm việc</h4>
@@ -1555,8 +1442,10 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                       ))}
                     </div>
                   </div>
+                )}
 
-                  {/* Projects Editor */}
+                {/* Projects Editor */}
+                {adminTab === 'projects' && (
                   <div className="space-y-4">
                     <div className="flex items-center justify-between border-b border-app-border pb-2">
                       <h4 className="text-sm font-bold uppercase tracking-wider text-app-accent">Dự án triển khai</h4>
@@ -1620,12 +1509,12 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                       ))}
                     </div>
                   </div>
+                )}
 
-                  {/* Education & Personal/Contact Info Editors */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Education */}
-                    <div className="p-4 rounded-xl bg-app-bg/50 border border-app-border space-y-3">
-                      <h4 className="text-sm font-bold uppercase tracking-wider text-app-accent border-b border-app-border pb-2">Học vấn</h4>
+                {/* Education */}
+                {adminTab === 'education' && (
+                  <div className="p-6 rounded-xl bg-app-bg/50 border border-app-border space-y-3">
+                    <h4 className="text-sm font-bold uppercase tracking-wider text-app-accent border-b border-app-border pb-2">Học vấn</h4>
                       <div className="space-y-3">
                         <div className="space-y-1">
                           <label className="text-[10px] uppercase font-bold text-app-muted">Trường học</label>
@@ -1665,11 +1554,13 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                           />
                         </div>
                       </div>
-                    </div>
+                  </div>
+                )}
 
-                    {/* Contact & Personal info */}
-                    <div className="p-4 rounded-xl bg-app-bg/50 border border-app-border space-y-3">
-                      <h4 className="text-sm font-bold uppercase tracking-wider text-app-accent border-b border-app-border pb-2">Thông tin cá nhân & Liên hệ</h4>
+                {/* Contact & Personal info */}
+                {adminTab === 'contact' && (
+                  <div className="p-6 rounded-xl bg-app-bg/50 border border-app-border space-y-3">
+                    <h4 className="text-sm font-bold uppercase tracking-wider text-app-accent border-b border-app-border pb-2">Thông tin cá nhân & Liên hệ</h4>
                       <div className="space-y-3">
                         <div className="space-y-1">
                           <label className="text-[10px] uppercase font-bold text-app-muted">Ngày sinh</label>
@@ -1765,12 +1656,13 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                             Đăng ký nhận mã Key miễn phí ngay lập tức tại <a href="https://web3forms.com" target="_blank" rel="noopener noreferrer" className="text-app-accent hover:underline inline-flex items-center gap-0.5">web3forms.com<ArrowUpRight className="w-2.5 h-2.5" /></a> (Chỉ cần điền email của bạn để nhận Key tức thì, hoàn toàn miễn phí).
                           </p>
                         </div>
-                      </div>
                     </div>
                   </div>
+                )}
 
-                  {/* Awards & Achievements Editor */}
-                  <div className="space-y-4 pt-4 border-t border-app-border">
+                {/* Awards & Achievements Editor */}
+                {adminTab === 'awards' && (
+                  <div className="space-y-4">
                     <div className="flex items-center justify-between border-b border-app-border pb-2">
                       <h4 className="text-sm font-bold uppercase tracking-wider text-app-accent">Giải thưởng & Thành tựu</h4>
                       <button 
@@ -1827,9 +1719,11 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                       )}
                     </div>
                   </div>
+                )}
 
-                  {/* Manual Edit Action bottom */}
-                  <div className="flex justify-end items-center gap-3 border-t border-app-border pt-4">
+                {/* Manual Edit Action bottom */}
+                {adminTab !== 'ai' && (
+                  <div className="flex justify-end items-center gap-3 border-t border-app-border pt-4 mt-6">
                     {saveSuccess && (
                       <span className="flex items-center gap-1.5 text-xs font-semibold text-green-500">
                         <CheckCircle className="w-4 h-4" />
@@ -1854,11 +1748,10 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                       )}
                     </button>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* TAB 2: AI GENERATOR */}
-              {adminTab === 'ai' && (
+                {/* TAB 2: AI GENERATOR */}
+                {adminTab === 'ai' && (
                 <div className="space-y-6">
                   
                   {/* Setup & API Key */}
@@ -2034,8 +1927,9 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
               )}
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+    </div>
     );
   }
 
@@ -2062,7 +1956,7 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
             <button onClick={() => scrollToSection('experience')} className="hover:text-app-accent transition-colors cursor-pointer">{t.navExperience}</button>
             <button onClick={() => scrollToSection('projects')} className="hover:text-app-accent transition-colors cursor-pointer">{t.navProjects}</button>
             <button onClick={() => scrollToSection('education')} className="hover:text-app-accent transition-colors cursor-pointer">{t.navEducation}</button>
-            {profileData.awards && profileData.awards.length > 0 && (
+            {awardsToDisplay && awardsToDisplay.length > 0 && (
               <button onClick={() => scrollToSection('awards')} className="hover:text-app-accent transition-colors cursor-pointer">{t.navAwards}</button>
             )}
             <button onClick={() => scrollToSection('contact')} className="hover:text-app-accent transition-colors cursor-pointer">{t.navContact}</button>
@@ -2458,7 +2352,7 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
         </section>
 
         {/* SECTION 7: AWARDS */}
-        {profileData.awards && profileData.awards.length > 0 && (
+        {awardsToDisplay && awardsToDisplay.length > 0 && (
           <section id="awards" className="scroll-mt-24 space-y-6">
             <div className="flex items-center gap-3 border-b border-app-border pb-4">
               <div className="p-2 rounded-lg bg-app-accent/10 text-app-accent">
@@ -2468,7 +2362,7 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {profileData.awards.map((award, idx) => (
+              {awardsToDisplay.map((award, idx) => (
                 <div 
                   key={idx} 
                   className="flex flex-col justify-between p-6 rounded-xl bg-app-card border border-app-border hover:border-app-accent/30 transition-all hover:scale-[1.01] group relative overflow-hidden shadow-sm relative"
@@ -2481,7 +2375,7 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                       <h3 className="font-display text-lg font-bold text-app-text group-hover:text-app-accent transition-colors leading-snug">
                         {award.title}
                       </h3>
-                      <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-app-accent/10 text-app-accent border border-app-accent/20 shrink-0 font-mono">
+                      <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-app-accent/10 text-app-accent border border-app-accent/20 shrink-0">
                         {award.year}
                       </span>
                     </div>
