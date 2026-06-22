@@ -691,27 +691,54 @@ function App() {
       vi: editData,
       en: editData
     };
+    
+    let localSaved = false;
+    let serverSaved = false;
+    let serverError = null;
+
+    // 1. Save to LocalStorage first to guarantee no data loss!
     try {
-      if (db) {
+      localStorage.setItem('cv_profile_data_multilang', JSON.stringify(updatedProfiles));
+      localStorage.setItem('cv_profile_data', JSON.stringify(updatedProfiles.vi));
+      localSaved = true;
+    } catch (err) {
+      console.error("Lỗi khi lưu vào LocalStorage:", err);
+    }
+
+    // 2. Save to Firebase Firestore
+    if (db) {
+      try {
         const docRef = doc(db, "profile", "default");
         await setDoc(docRef, updatedProfiles);
         console.log("Dữ liệu đã được lưu lên Firebase Firestore.");
+        serverSaved = true;
+      } catch (error) {
+        console.error('Lỗi khi lưu lên Firebase Firestore:', error);
+        serverError = error;
       }
-      localStorage.setItem('cv_profile_data_multilang', JSON.stringify(updatedProfiles));
-      localStorage.setItem('cv_profile_data', JSON.stringify(updatedProfiles.vi));
-      
+    }
+
+    setIsSaving(false);
+
+    if (localSaved) {
       setAllProfiles(updatedProfiles);
+      
+      if (db && !serverSaved) {
+        // Firebase failure diagnostics
+        if (serverError && (serverError.code === 'permission-denied' || serverError.message?.includes('permission'))) {
+          alert('Đã lưu dữ liệu thành công cục bộ trên trình duyệt (LocalStorage)!\nTuy nhiên, không thể đồng bộ lên máy chủ Firebase do lỗi phân quyền (Security Rules). Vui lòng cấu hình lại Firestore rules để cho phép ghi.');
+        } else if (serverError && (serverError.message?.includes('too large') || serverError.message?.includes('size limit') || JSON.stringify(updatedProfiles).length > 800000)) {
+          alert('Đã lưu dữ liệu thành công cục bộ trên trình duyệt (LocalStorage)!\nTuy nhiên, không thể đồng bộ lên Firebase do dung lượng tệp tin (ảnh đại diện/CV) quá lớn (Hạn chế 1MB của Firestore). Vui lòng thử tải lên ảnh/file kích thước nhỏ hơn.');
+        } else {
+          alert('Đã lưu dữ liệu thành công cục bộ trên trình duyệt (LocalStorage)!\nTuy nhiên, không thể đồng bộ lên máy chủ Firebase (Vui lòng kiểm tra cấu hình Firebase hoặc kết nối mạng).');
+        }
+      }
+      
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
-    } catch (error) {
-      console.error('Lỗi khi lưu profileData:', error);
-      if (error.code === 'quota-exceeded' || error.name === 'QuotaExceededError') {
-        alert('Lỗi: Trình duyệt hết bộ nhớ lưu trữ! Vui lòng tải lên ảnh kích thước nhỏ hơn (dưới 2MB).');
-      } else {
-        alert('Không thể lưu dữ liệu! Vui lòng kiểm tra cấu hình Firebase hoặc kết nối mạng.');
-      }
-    } finally {
-      setIsSaving(false);
+    } else {
+      // LocalStorage fallback failed (typically quota exceeded)
+      alert('Không thể lưu dữ liệu! Trình duyệt hết bộ nhớ lưu trữ. Vui lòng thử dùng ảnh đại diện hoặc tệp tin CV có kích thước nhỏ hơn.');
     }
   };
 
@@ -866,18 +893,30 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
         vi: normalizedAiData,
         en: normalizedAiData
       };
-      setAllProfiles(updatedProfiles);
-      setEditData(normalizedAiData);
+      
+      let localSaved = false;
       try {
         localStorage.setItem('cv_profile_data_multilang', JSON.stringify(updatedProfiles));
         localStorage.setItem('cv_profile_data', JSON.stringify(updatedProfiles.vi));
-        if (db) {
+        localSaved = true;
+      } catch (err) {
+        console.error("Lỗi khi lưu LocalStorage dữ liệu AI:", err);
+      }
+
+      if (db) {
+        try {
           const docRef = doc(db, "profile", "default");
           await setDoc(docRef, updatedProfiles);
           console.log("Dữ liệu AI đã được lưu lên Firebase Firestore.");
+        } catch (e) {
+          console.error("Lỗi khi đồng bộ dữ liệu AI lên Firebase:", e);
+          alert("Áp dụng dữ liệu AI thành công cục bộ! Tuy nhiên đồng bộ lên Firebase thất bại.");
         }
-      } catch (e) {
-        console.error("Lỗi khi đồng bộ dữ liệu AI:", e);
+      }
+
+      if (localSaved) {
+        setAllProfiles(updatedProfiles);
+        setEditData(normalizedAiData);
       }
       navigateTo('/admin');
     }
