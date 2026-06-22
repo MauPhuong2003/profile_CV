@@ -1,6 +1,6 @@
 import { Settings, ArrowLeft, LogOut } from 'lucide-react';
 
-const AdminHeader = ({ navigateTo, handleLogout }) => {
+const AdminHeader = ({ navigateTo, handleLogout, handleClearBrowserCache }) => {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-2xl bg-app-card border border-app-border shadow-xl md:shrink-0">
       <div className="flex items-center gap-3">
@@ -13,7 +13,14 @@ const AdminHeader = ({ navigateTo, handleLogout }) => {
         </div>
       </div>
 
-      <div className="flex items-center gap-2.5">
+      <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
+        <button 
+          onClick={handleClearBrowserCache}
+          className="px-4 py-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-500 text-sm hover:bg-amber-500/20 transition-all flex items-center gap-1.5 cursor-pointer font-sans"
+          title="Xóa bộ nhớ đệm LocalStorage bị đầy để sửa lỗi hết bộ nhớ"
+        >
+          Giải phóng bộ nhớ
+        </button>
         <button 
           onClick={() => navigateTo('/')}
           className="px-4 py-2 rounded-lg bg-white/5 border border-app-border text-app-text text-sm hover:bg-white/10 transition-colors flex items-center gap-1.5 cursor-pointer"

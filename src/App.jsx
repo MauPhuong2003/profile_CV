@@ -417,6 +417,14 @@ function App() {
   const handleCvFileUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (file.size > 1.5 * 1024 * 1024) {
+        alert(`Không thể tải lên! Tệp tin CV của bạn quá lớn (${Math.round(file.size / (1024 * 1024) * 100) / 100}MB). Trình duyệt và Firebase giới hạn dung lượng lưu trữ tối đa. Vui lòng nén tệp tin PDF xuống dưới 1MB (khuyên dùng dưới 700KB) bằng các công cụ nén PDF trực tuyến như Smallpdf, ILovePDF trước khi tải lên.`);
+        e.target.value = null; // Reset file input
+        return;
+      }
+      if (file.size > 700 * 1024) {
+        alert(`Cảnh báo: Tệp tin CV của bạn khá nặng (${Math.round(file.size / 1024)}KB). Bạn nên nén tệp PDF xuống dưới 700KB để đảm bảo đồng bộ lên Firebase thành công.`);
+      }
       setUploadedFileName(file.name);
       const reader = new FileReader();
       reader.onload = (event) => {
@@ -441,14 +449,41 @@ function App() {
         alert('Vui lòng chọn file hình ảnh!');
         return;
       }
-      if (file.size > 2 * 1024 * 1024) {
-        alert('Ảnh có dung lượng quá lớn (chọn ảnh dưới 2MB)!');
-        return;
-      }
       setUploadedAvatarName(file.name);
       const reader = new FileReader();
       reader.onload = (event) => {
-        handleManualChange('avatar', event.target.result);
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          
+          // Downscale to max 500px
+          const MAX_SIZE = 500;
+          if (width > height) {
+            if (width > MAX_SIZE) {
+              height = Math.round((height * MAX_SIZE) / width);
+              width = MAX_SIZE;
+            }
+          } else {
+            if (height > MAX_SIZE) {
+              width = Math.round((width * MAX_SIZE) / height);
+              height = MAX_SIZE;
+            }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          // Compress to JPEG with 70% quality
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+          console.log("Compressed avatar size:", Math.round(compressedDataUrl.length / 1024), "KB");
+          
+          handleManualChange('avatar', compressedDataUrl);
+        };
       };
       reader.onerror = () => {
         alert('Đã xảy ra lỗi khi đọc file ảnh!');
@@ -685,6 +720,14 @@ function App() {
     });
   };
 
+  const handleClearBrowserCache = () => {
+    if (window.confirm("Bạn có chắc muốn giải phóng bộ nhớ đệm LocalStorage không? Thao tác này sẽ xóa cache trên trình duyệt và tải lại dữ liệu mới nhất từ máy chủ Firebase.")) {
+      localStorage.removeItem('cv_profile_data_multilang');
+      localStorage.removeItem('cv_profile_data');
+      window.location.reload();
+    }
+  };
+
   const handleSaveManual = async () => {
     setIsSaving(true);
     const updatedProfiles = {
@@ -703,6 +746,20 @@ function App() {
       localSaved = true;
     } catch (err) {
       console.error("Lỗi khi lưu vào LocalStorage:", err);
+      // Auto-recovery: if LocalStorage is full, clear the old cache and retry writing
+      if (err.name === 'QuotaExceededError' || err.code === 22) {
+        try {
+          console.warn("LocalStorage full. Attempting to clear cache and retry...");
+          localStorage.removeItem('cv_profile_data_multilang');
+          localStorage.removeItem('cv_profile_data');
+          localStorage.setItem('cv_profile_data_multilang', JSON.stringify(updatedProfiles));
+          localStorage.setItem('cv_profile_data', JSON.stringify(updatedProfiles.vi));
+          localSaved = true;
+          console.log("LocalStorage recovered and saved successfully.");
+        } catch (retryErr) {
+          console.error("Failed to recover LocalStorage even after clearing cache:", retryErr);
+        }
+      }
     }
 
     // 2. Save to Firebase Firestore
@@ -737,7 +794,7 @@ function App() {
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
     } else {
-      // LocalStorage fallback failed (typically quota exceeded)
+      // LocalStorage fallback failed (typically quota exceeded even after clearing)
       alert('Không thể lưu dữ liệu! Trình duyệt hết bộ nhớ lưu trữ. Vui lòng thử dùng ảnh đại diện hoặc tệp tin CV có kích thước nhỏ hơn.');
     }
   };
@@ -937,6 +994,18 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
   }
 
   if (currentRoute === 'admin') {
+    const getStorageSizeInfo = () => {
+      try {
+        const dataStr = JSON.stringify(editData || {});
+        const sizeKb = Math.round(dataStr.length / 1024);
+        const percent = Math.min(Math.round((dataStr.length / (5 * 1024 * 1024)) * 100), 100);
+        return { sizeKb, percent };
+      } catch (e) {
+        return { sizeKb: 0, percent: 0 };
+      }
+    };
+    const storageInfo = getStorageSizeInfo();
+
     return (
       <div className="min-h-screen bg-app-bg text-app-text transition-colors duration-300 font-sans md:h-screen md:overflow-hidden">
         
@@ -961,8 +1030,7 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
           // ADMIN CONTROL PANEL DASHBOARD (Full screen)
           <div className="max-w-5xl mx-auto px-4 py-8 space-y-6 md:py-6 md:h-full md:max-h-screen md:flex md:flex-col md:gap-6 md:space-y-0 md:overflow-hidden">
             
-            {/* Admin Dashboard Header */}
-            <AdminHeader navigateTo={navigateTo} handleLogout={handleLogout} />
+            <AdminHeader navigateTo={navigateTo} handleLogout={handleLogout} handleClearBrowserCache={handleClearBrowserCache} />
 
             {/* Admin Layout Grid */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 md:flex-1 md:min-h-0">
@@ -1068,31 +1136,51 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
 
                 {/* Manual Edit Action bottom */}
                 {adminTab !== 'ai' && (
-                  <div className="flex justify-end items-center gap-3 border-t border-app-border pt-4 mt-6">
-                    {saveSuccess && (
-                      <span className="flex items-center gap-1.5 text-xs font-semibold text-green-500">
-                        <CheckCircle className="w-4 h-4" />
-                        Đã lưu thành công!
-                      </span>
-                    )}
-                    <button
-                      type="button"
-                      onClick={handleSaveManual}
-                      disabled={isSaving}
-                      className={`px-6 py-2.5 rounded-lg bg-app-accent text-black font-bold text-sm hover:opacity-90 transition-opacity flex items-center gap-1.5 cursor-pointer shadow-lg shadow-app-accent/15 ${isSaving ? 'opacity-70 cursor-not-allowed' : ''}`}
-                    >
-                      {isSaving ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
-                          Đang lưu...
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle className="w-4 h-4 text-black" />
-                          Lưu Profile
-                        </>
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-t border-app-border pt-4 mt-6">
+                    {/* Storage usage indicator */}
+                    <div className="flex flex-col gap-0.5">
+                      <div className="flex items-center gap-1.5">
+                        <span className={`w-2.5 h-2.5 rounded-full ${storageInfo.percent > 80 ? 'bg-red-500 animate-pulse' : storageInfo.percent > 50 ? 'bg-amber-500' : 'bg-green-500'}`}></span>
+                        <span className="text-xs text-app-muted font-sans font-medium">
+                          Dung lượng dữ liệu: {storageInfo.sizeKb}KB / 5000KB ({storageInfo.percent}%)
+                        </span>
+                      </div>
+                      {storageInfo.percent > 50 && (
+                        <span className="text-[10px] text-amber-500 font-sans leading-tight max-w-[280px]">
+                          {storageInfo.percent > 80 
+                            ? '⚠️ Bộ nhớ sắp đầy! Vui lòng gỡ file CV nặng hoặc thay thế bằng ảnh/file nhỏ hơn.' 
+                            : 'Khuyên dùng: Nén file CV xuống dưới 700KB để lưu trữ mượt mà.'
+                          }
+                        </span>
                       )}
-                    </button>
+                    </div>
+
+                    <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+                      {saveSuccess && (
+                        <span className="flex items-center gap-1.5 text-xs font-semibold text-green-500">
+                          <CheckCircle className="w-4 h-4" />
+                          Đã lưu thành công!
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={handleSaveManual}
+                        disabled={isSaving}
+                        className={`px-6 py-2.5 rounded-lg bg-app-accent text-black font-bold text-sm hover:opacity-90 transition-opacity flex items-center gap-1.5 cursor-pointer shadow-lg shadow-app-accent/15 ${isSaving ? 'opacity-70 cursor-not-allowed' : ''}`}
+                      >
+                        {isSaving ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+                            Đang lưu...
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle className="w-4 h-4 text-black" />
+                            Lưu Profile
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
