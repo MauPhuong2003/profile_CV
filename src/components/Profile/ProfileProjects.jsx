@@ -40,10 +40,15 @@ const ProfileProjects = ({ profileData, t }) => {
             <div className="absolute -bottom-16 -right-16 w-32 h-32 bg-app-accent/5 rounded-full blur-2xl group-hover:bg-app-accent/10 transition-all pointer-events-none"></div>
             
             <div className="space-y-5 relative z-10">
-              <div className="flex items-center justify-between">
+              <div className="flex items-start justify-between gap-4 flex-wrap">
                 <h3 className="font-display text-lg font-bold text-app-text group-hover:text-app-accent transition-colors">
                   {proj.name}
                 </h3>
+                {proj.period && (
+                  <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-app-accent/10 text-app-accent border border-app-accent/20 shrink-0">
+                    {proj.period}
+                  </span>
+                )}
               </div>
               {renderDescriptionList(proj.description)}
                <div className="flex flex-wrap gap-1.5">

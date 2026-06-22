@@ -1,12 +1,9 @@
-import { Globe } from 'lucide-react';
 import ThemeToggle from '../Common/ThemeToggle';
 
 const ProfileHeader = ({ 
   profileData, 
   t, 
   awardsToDisplay, 
-  currentLang, 
-  setCurrentLang, 
   isDarkMode, 
   toggleTheme, 
   scrollToSection 
@@ -37,16 +34,6 @@ const ProfileHeader = ({
         </nav>
 
         <div className="flex items-center gap-3">
-          {/* LANGUAGE TOGGLE BUTTON */}
-          <button 
-            onClick={() => setCurrentLang(prev => prev === 'vi' ? 'en' : 'vi')}
-            className="px-2.5 py-2 rounded-lg bg-app-card border border-app-border text-xs font-bold text-app-text hover:text-app-accent hover:border-app-accent/40 transition-all cursor-pointer flex items-center gap-1.5"
-            title={currentLang === 'vi' ? "Switch to English" : "Chuyển sang Tiếng Việt"}
-          >
-            <Globe className="w-3.5 h-3.5 text-app-accent" />
-            <span>{currentLang === 'vi' ? 'EN' : 'VI'}</span>
-          </button>
-
           {/* LIGHT/DARK MODE TOGGLE BUTTON */}
           <ThemeToggle 
             isDarkMode={isDarkMode} 

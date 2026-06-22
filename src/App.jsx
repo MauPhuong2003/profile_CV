@@ -34,82 +34,42 @@ import ContactForm from './components/Admin/Forms/ContactForm';
 import AiConsoleForm from './components/Admin/Forms/AiConsoleForm';
 
 const uiTranslations = {
-  vi: {
-    about: "Giới thiệu bản thân",
-    skills: "Kỹ năng chuyên môn",
-    experience: "Kinh nghiệm làm việc",
-    projects: "Dự án nổi bật",
-    education: "Học vấn & Bằng cấp",
-    contact: "Liên hệ",
-    contactMe: "Liên hệ với tôi",
-    downloadCv: "Tải CV",
-    contactInfo: "Thông tin liên hệ",
-    birthDate: "Ngày sinh",
-    phone: "Số điện thoại",
-    address: "Địa chỉ",
-    shortGoal: "Mục tiêu ngắn hạn",
-    longGoal: "Mục tiêu dài hạn",
-    graduated: "Tốt nghiệp",
-    navAbout: "Giới thiệu",
-    navSkills: "Kỹ năng",
-    navExperience: "Kinh nghiệm",
-    navProjects: "Dự án",
-    navEducation: "Học vấn",
-    navContact: "Liên hệ",
-    recruiterConnect: "Bạn là nhà tuyển dụng muốn kết nối? Hãy gửi tin nhắn trực tiếp qua biểu mẫu hoặc qua thông tin liên hệ bên dưới:",
-    contactSuccessTitle: "Gửi tin nhắn thành công!",
-    contactSuccessDesc: "Cảm ơn bạn đã liên hệ. Tôi sẽ phản hồi lại sớm nhất có thể.",
-    yourName: "Tên của bạn",
-    emailAddress: "Địa chỉ Email",
-    messageContent: "Nội dung tin nhắn",
-    messagePlaceholder: "Lời nhắn của bạn...",
-    sendBtn: "Gửi tin nhắn",
-    sending: "Đang gửi...",
-    backToTop: "Đầu trang",
-    connectNow: "Liên hệ ngay",
-    awards: "Giải thưởng & Thành tựu",
-    navAwards: "Giải thưởng",
-    awarded: "Đạt giải",
-    softSkills: "Kỹ năng mềm"
-  },
-  en: {
-    about: "About Me",
-    skills: "Professional Skills",
-    experience: "Work Experience",
-    projects: "Featured Projects",
-    education: "Education & Credentials",
-    contact: "Contact",
-    contactMe: "Contact Me",
-    downloadCv: "Download CV",
-    contactInfo: "Contact Information",
-    birthDate: "Date of Birth",
-    phone: "Phone Number",
-    address: "Address",
-    shortGoal: "Short-term Goal",
-    longGoal: "Long-term Goal",
-    graduated: "Graduated",
-    navAbout: "About",
-    navSkills: "Skills",
-    navExperience: "Experience",
-    navProjects: "Projects",
-    navEducation: "Education",
-    navContact: "Contact",
-    recruiterConnect: "Are you a recruiter looking to connect? Send a direct message using the form or reach out via the contact info below:",
-    contactSuccessTitle: "Message Sent Successfully!",
-    contactSuccessDesc: "Thank you for reaching out. I will respond as soon as possible.",
-    yourName: "Your Name",
-    emailAddress: "Email Address",
-    messageContent: "Message Content",
-    messagePlaceholder: "Your message...",
-    sendBtn: "Send Message",
-    sending: "Sending...",
-    backToTop: "Back to Top",
-    connectNow: "Connect Now",
-    awards: "Awards & Achievements",
-    navAwards: "Awards",
-    awarded: "Awarded",
-    softSkills: "Soft Skills"
-  }
+  about: "Giới thiệu bản thân",
+  skills: "Kỹ năng chuyên môn",
+  experience: "Kinh nghiệm làm việc",
+  projects: "Dự án nổi bật",
+  education: "Học vấn & Bằng cấp",
+  contact: "Liên hệ",
+  contactMe: "Liên hệ với tôi",
+  downloadCv: "Tải CV",
+  contactInfo: "Thông tin liên hệ",
+  birthDate: "Ngày sinh",
+  phone: "Số điện thoại",
+  address: "Địa chỉ",
+  shortGoal: "Mục tiêu ngắn hạn",
+  longGoal: "Mục tiêu dài hạn",
+  graduated: "Tốt nghiệp",
+  navAbout: "Giới thiệu",
+  navSkills: "Kỹ năng",
+  navExperience: "Kinh nghiệm",
+  navProjects: "Dự án",
+  navEducation: "Học vấn",
+  navContact: "Liên hệ",
+  recruiterConnect: "Bạn là nhà tuyển dụng muốn kết nối? Hãy gửi tin nhắn trực tiếp qua biểu mẫu hoặc qua thông tin liên hệ bên dưới:",
+  contactSuccessTitle: "Gửi tin nhắn thành công!",
+  contactSuccessDesc: "Cảm ơn bạn đã liên hệ. Tôi sẽ phản hồi lại sớm nhất có thể.",
+  yourName: "Tên của bạn",
+  emailAddress: "Địa chỉ Email",
+  messageContent: "Nội dung tin nhắn",
+  messagePlaceholder: "Lời nhắn của bạn...",
+  sendBtn: "Gửi tin nhắn",
+  sending: "Đang gửi...",
+  backToTop: "Đầu trang",
+  connectNow: "Liên hệ ngay",
+  awards: "Giải thưởng & Thành tựu",
+  navAwards: "Giải thưởng",
+  awarded: "Đạt giải",
+  softSkills: "Kỹ năng mềm"
 };
 
 const defaultProfile = {
@@ -133,12 +93,7 @@ const defaultProfile = {
   softSkills: [],
   experience: [],
   projects: [],
-  education: {
-    school: "",
-    major: "",
-    year: "",
-    skills: ""
-  },
+  education: [],
   awards: [],
   contact: {
     email: "",
@@ -150,9 +105,38 @@ const defaultProfile = {
   web3FormsKey: ""
 };
 
+const normalizeProfile = (profile) => {
+  const normalized = { ...defaultProfile, ...profile };
+  
+  if (!normalized.skills || typeof normalized.skills !== 'object' || Array.isArray(normalized.skills)) {
+    normalized.skills = { ...defaultProfile.skills };
+  }
+  
+  if (normalized.education && !Array.isArray(normalized.education)) {
+    if (typeof normalized.education === 'object' && Object.keys(normalized.education).length > 0) {
+      const { school, major, year, skills } = normalized.education;
+      if (school || major || year || skills) {
+        normalized.education = [{
+          school: school || "",
+          major: major || "",
+          year: year || "",
+          skills: skills || ""
+        }];
+      } else {
+        normalized.education = [];
+      }
+    } else {
+      normalized.education = [];
+    }
+  }
+  if (!normalized.education) {
+    normalized.education = [];
+  }
+  
+  return normalized;
+};
+
 function App() {
-  const [currentLang, setCurrentLang] = useState('vi');
-  const adminEditLang = 'vi';
 
   const [allProfiles, setAllProfiles] = useState(() => {
     try {
@@ -160,36 +144,30 @@ function App() {
       if (savedMultilang) {
         const parsed = JSON.parse(savedMultilang);
         return {
-          vi: { ...defaultProfile, ...parsed.vi },
-          en: { ...defaultProfile, ...parsed.en }
+          vi: normalizeProfile(parsed.vi)
         };
       }
       const saved = localStorage.getItem('cv_profile_data');
       if (saved) {
         const parsedOld = JSON.parse(saved);
         return {
-          vi: { ...defaultProfile, ...parsedOld },
-          en: { ...defaultProfile, ...parsedOld }
+          vi: normalizeProfile(parsedOld)
         };
       }
     } catch (err) {
       console.error("Error reading initial localStorage:", err);
     }
     return {
-      vi: defaultProfile,
-      en: defaultProfile
+      vi: defaultProfile
     };
   });
 
-  const profileData = allProfiles[currentLang];
-  const awardsToDisplay = (profileData?.awards && profileData.awards.length > 0) 
-    ? profileData.awards 
-    : (allProfiles?.vi?.awards || []);
-  
-  const softSkillsToDisplay = (profileData?.softSkills && profileData.softSkills.length > 0) 
-    ? profileData.softSkills 
-    : (allProfiles?.vi?.softSkills || []);
-  
+  const profileData = allProfiles.vi || defaultProfile;
+  const profileDataToDisplay = profileData;
+
+  const awardsToDisplay = profileDataToDisplay.awards || [];
+  const softSkillsToDisplay = profileDataToDisplay.softSkills || [];
+
   const [currentRoute, setCurrentRoute] = useState(() => {
     return window.location.pathname === '/admin' ? 'admin' : 'cv';
   });
@@ -210,7 +188,7 @@ function App() {
     return profileData.avatar?.startsWith('data:') ? 'Ảnh từ thiết bị' : '';
   });
 
-  const t = uiTranslations[currentLang];
+  const t = uiTranslations;
 
   const [apiKey, setApiKey] = useState('');
   const [aiPrompt, setAiPrompt] = useState('');
@@ -286,21 +264,18 @@ function App() {
           if (savedMultilang) {
             const parsed = JSON.parse(savedMultilang);
             const loadedProfiles = {
-              vi: { ...defaultProfile, ...parsed.vi },
-              en: { ...defaultProfile, ...parsed.en }
+              vi: normalizeProfile(parsed.vi)
             };
             setAllProfiles(loadedProfiles);
-            setEditData(loadedProfiles[adminEditLang]);
+            setEditData(loadedProfiles.vi);
           } else {
             const saved = localStorage.getItem('cv_profile_data');
             if (saved) {
-              const parsedOld = { ...defaultProfile, ...JSON.parse(saved) };
               const loadedProfiles = {
-                vi: parsedOld,
-                en: parsedOld
+                vi: normalizeProfile(JSON.parse(saved))
               };
               setAllProfiles(loadedProfiles);
-              setEditData(loadedProfiles[adminEditLang]);
+              setEditData(loadedProfiles.vi);
             }
           }
         } catch (err) {
@@ -316,26 +291,22 @@ function App() {
         if (docSnap.exists()) {
           const dbData = docSnap.data();
           let loadedProfiles = {
-            vi: defaultProfile,
-            en: defaultProfile
+            vi: defaultProfile
           };
           
-          if (dbData.vi || dbData.en) {
-            loadedProfiles.vi = { ...defaultProfile, ...dbData.vi };
-            loadedProfiles.en = { ...defaultProfile, ...dbData.en };
+          if (dbData.vi) {
+            loadedProfiles.vi = normalizeProfile(dbData.vi);
           } else if (dbData.name) {
-            const parsedOld = { ...defaultProfile, ...dbData };
-            loadedProfiles.vi = parsedOld;
-            loadedProfiles.en = parsedOld;
+            loadedProfiles.vi = normalizeProfile(dbData);
           }
           
           setAllProfiles(loadedProfiles);
-          setEditData(loadedProfiles[adminEditLang]);
+          setEditData(loadedProfiles.vi);
         } else {
-          const initial = { vi: defaultProfile, en: defaultProfile };
+          const initial = { vi: defaultProfile };
           await setDoc(docRef, initial);
           setAllProfiles(initial);
-          setEditData(initial[adminEditLang]);
+          setEditData(initial.vi);
         }
       } catch (error) {
         console.error("Lỗi khi tải dữ liệu từ Firestore:", error);
@@ -344,21 +315,18 @@ function App() {
           if (savedMultilang) {
             const parsed = JSON.parse(savedMultilang);
             const loadedProfiles = {
-              vi: { ...defaultProfile, ...parsed.vi },
-              en: { ...defaultProfile, ...parsed.en }
+              vi: normalizeProfile(parsed.vi)
             };
             setAllProfiles(loadedProfiles);
-            setEditData(loadedProfiles[adminEditLang]);
+            setEditData(loadedProfiles.vi);
           } else {
             const saved = localStorage.getItem('cv_profile_data');
             if (saved) {
-              const parsedOld = { ...defaultProfile, ...JSON.parse(saved) };
               const loadedProfiles = {
-                vi: parsedOld,
-                en: parsedOld
+                vi: normalizeProfile(JSON.parse(saved))
               };
               setAllProfiles(loadedProfiles);
-              setEditData(loadedProfiles[adminEditLang]);
+              setEditData(loadedProfiles.vi);
             }
           }
         } catch (err) {
@@ -372,12 +340,12 @@ function App() {
     loadData();
   }, []);
 
-  // Sync editData when allProfiles or adminEditLang changes (e.g. loaded data)
+  // Sync editData when allProfiles changes (e.g. loaded data)
   useEffect(() => {
-    if (allProfiles[adminEditLang]) {
+    if (allProfiles.vi) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setEditData(allProfiles[adminEditLang]);
-      setUploadedAvatarName(allProfiles[adminEditLang].avatar?.startsWith('data:') ? 'Ảnh từ thiết bị' : '');
+      setEditData(allProfiles.vi);
+      setUploadedAvatarName(allProfiles.vi.avatar?.startsWith('data:') ? 'Ảnh từ thiết bị' : '');
     }
   }, [allProfiles]);
 
@@ -387,11 +355,12 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     
     if (path === '/admin') {
-      setEditData({ ...allProfiles[adminEditLang] });
+      setEditData({ ...allProfiles.vi });
       setPassError('');
-      setUploadedAvatarName(allProfiles[adminEditLang].avatar?.startsWith('data:') ? 'Ảnh từ thiết bị' : '');
+      setUploadedAvatarName(allProfiles.vi.avatar?.startsWith('data:') ? 'Ảnh từ thiết bị' : '');
     }
   };
+
 
   const toggleTheme = () => {
     const newDarkMode = !isDarkMode;
@@ -495,11 +464,12 @@ function App() {
 
   const handleAddSkill = (category) => {
     const currentSkills = editData.skills[category] || [];
+    const newSkillName = 'Kỹ năng mới';
     setEditData(prev => ({
       ...prev,
       skills: {
         ...prev.skills,
-        [category]: [...currentSkills, 'Kỹ năng mới']
+        [category]: [...currentSkills, newSkillName]
       }
     }));
   };
@@ -517,7 +487,7 @@ function App() {
   };
 
   const handleDeleteSkill = (category, index) => {
-    const currentSkills = editData.skills[category].filter((_, i) => i !== index);
+    const currentSkills = (editData.skills[category] || []).filter((_, i) => i !== index);
     setEditData(prev => ({
       ...prev,
       skills: {
@@ -545,12 +515,37 @@ function App() {
     });
   };
 
+  const handleAddSkillCategory = (catName) => {
+    if (!catName || !catName.trim()) return;
+    const trimmed = catName.trim();
+    if (editData.skills && editData.skills[trimmed]) return;
+    setEditData(prev => ({
+      ...prev,
+      skills: {
+        ...prev.skills,
+        [trimmed]: []
+      }
+    }));
+  };
+
+  const handleDeleteSkillCategory = (catName) => {
+    setEditData(prev => {
+      const newSkills = { ...prev.skills };
+      delete newSkills[catName];
+      return {
+        ...prev,
+        skills: newSkills
+      };
+    });
+  };
+
   const handleAddExperience = () => {
+    const newItemVi = { company: 'Công ty mới', role: 'Vị trí công việc', period: '2024', description: 'Mô tả công việc của bạn', skills: [] };
     setEditData(prev => ({
       ...prev,
       experience: [
         ...(prev.experience || []),
-        { company: 'Công ty mới', role: 'Vị trí công việc', period: '2024', description: 'Mô tả công việc của bạn', skills: [] }
+        newItemVi
       ]
     }));
   };
@@ -565,33 +560,30 @@ function App() {
   };
 
   const handleDeleteExperience = (index) => {
-    const list = editData.experience.filter((_, i) => i !== index);
     setEditData(prev => ({
       ...prev,
-      experience: list
+      experience: (prev.experience || []).filter((_, i) => i !== index)
     }));
   };
 
   const handleAddProject = () => {
+    const newItemVi = { name: 'Dự án mới', description: 'Mô tả dự án', tech: ['React'], demo: '#', period: '' };
     setEditData(prev => ({
       ...prev,
       projects: [
         ...(prev.projects || []),
-        { name: 'Dự án mới', description: 'Mô tả dự án', tech: ['React'], demo: '#' }
+        newItemVi
       ]
     }));
   };
 
   const handleUpdateProject = (index, field, val) => {
     const list = [...editData.projects];
+    let computedVal = val;
     if (field === 'tech') {
-      list[index] = { 
-        ...list[index], 
-        tech: Array.isArray(val) ? val : val.split(',').map(s => s.trim()).filter(Boolean) 
-      };
-    } else {
-      list[index] = { ...list[index], [field]: val };
+      computedVal = Array.isArray(val) ? val : val.split(',').map(s => s.trim()).filter(Boolean);
     }
+    list[index] = { ...list[index], [field]: computedVal };
     setEditData(prev => ({
       ...prev,
       projects: list
@@ -599,19 +591,49 @@ function App() {
   };
 
   const handleDeleteProject = (index) => {
-    const list = editData.projects.filter((_, i) => i !== index);
     setEditData(prev => ({
       ...prev,
-      projects: list
+      projects: (prev.projects || []).filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleAddEducation = () => {
+    setEditData(prev => ({
+      ...prev,
+      education: [
+        ...(prev.education || []),
+        { school: 'Trường học mới', major: 'Chuyên ngành', year: '2024', skills: '' }
+      ]
+    }));
+  };
+
+  const handleUpdateEducation = (index, field, val) => {
+    setEditData(prev => {
+      const list = [...(prev.education || [])];
+      if (list[index]) {
+        list[index] = { ...list[index], [field]: val };
+      }
+      return {
+        ...prev,
+        education: list
+      };
+    });
+  };
+
+  const handleDeleteEducation = (index) => {
+    setEditData(prev => ({
+      ...prev,
+      education: (prev.education || []).filter((_, i) => i !== index)
     }));
   };
 
   const handleAddAward = () => {
+    const newItemVi = { title: 'Giải thưởng mới', year: new Date().getFullYear().toString(), issuer: 'Tổ chức cấp giải' };
     setEditData(prev => ({
       ...prev,
       awards: [
         ...(prev.awards || []),
-        { title: 'Giải thưởng mới', year: new Date().getFullYear().toString(), issuer: 'Tổ chức cấp giải' }
+        newItemVi
       ]
     }));
   };
@@ -626,18 +648,48 @@ function App() {
   };
 
   const handleDeleteAward = (index) => {
-    const list = (editData.awards || []).filter((_, i) => i !== index);
     setEditData(prev => ({
       ...prev,
-      awards: list
+      awards: (prev.awards || []).filter((_, i) => i !== index)
     }));
+  };
+
+  const handleReorderItem = (field, dragIndex, hoverIndex) => {
+    setEditData(prev => {
+      const list = [...(prev[field] || [])];
+      const draggedItem = list[dragIndex];
+      list.splice(dragIndex, 1);
+      list.splice(hoverIndex, 0, draggedItem);
+      return {
+        ...prev,
+        [field]: list
+      };
+    });
+  };
+
+  const handleReorderSkills = (dragIndex, hoverIndex) => {
+    setEditData(prev => {
+      const keys = Object.keys(prev.skills || {});
+      const draggedKey = keys[dragIndex];
+      keys.splice(dragIndex, 1);
+      keys.splice(hoverIndex, 0, draggedKey);
+      
+      const newSkills = {};
+      keys.forEach(key => {
+        newSkills[key] = prev.skills[key];
+      });
+      return {
+        ...prev,
+        skills: newSkills
+      };
+    });
   };
 
   const handleSaveManual = async () => {
     setIsSaving(true);
     const updatedProfiles = {
-      ...allProfiles,
-      [adminEditLang]: editData
+      vi: editData,
+      en: editData
     };
     try {
       if (db) {
@@ -809,12 +861,13 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
 
   const handleApplyAiData = async () => {
     if (parsedAiData) {
+      const normalizedAiData = normalizeProfile(parsedAiData);
       const updatedProfiles = {
-        ...allProfiles,
-        [adminEditLang]: parsedAiData
+        vi: normalizedAiData,
+        en: normalizedAiData
       };
       setAllProfiles(updatedProfiles);
-      setEditData(parsedAiData);
+      setEditData(normalizedAiData);
       try {
         localStorage.setItem('cv_profile_data_multilang', JSON.stringify(updatedProfiles));
         localStorage.setItem('cv_profile_data', JSON.stringify(updatedProfiles.vi));
@@ -903,6 +956,9 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                     handleUpdateSkill={handleUpdateSkill}
                     handleDeleteSkill={handleDeleteSkill}
                     handleManualChange={handleManualChange}
+                    handleAddSkillCategory={handleAddSkillCategory}
+                    handleDeleteSkillCategory={handleDeleteSkillCategory}
+                    handleReorderSkills={handleReorderSkills}
                   />
                 )}
 
@@ -912,6 +968,7 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                     handleAddExperience={handleAddExperience}
                     handleUpdateExperience={handleUpdateExperience}
                     handleDeleteExperience={handleDeleteExperience}
+                    handleReorderItem={handleReorderItem}
                   />
                 )}
 
@@ -921,13 +978,17 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                     handleAddProject={handleAddProject}
                     handleUpdateProject={handleUpdateProject}
                     handleDeleteProject={handleDeleteProject}
+                    handleReorderItem={handleReorderItem}
                   />
                 )}
 
                 {adminTab === 'education' && (
                   <EducationForm 
                     editData={editData}
-                    handleManualNestedChange={handleManualNestedChange}
+                    handleAddEducation={handleAddEducation}
+                    handleUpdateEducation={handleUpdateEducation}
+                    handleDeleteEducation={handleDeleteEducation}
+                    handleReorderItem={handleReorderItem}
                   />
                 )}
 
@@ -945,6 +1006,7 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                     handleAddAward={handleAddAward}
                     handleUpdateAward={handleUpdateAward}
                     handleDeleteAward={handleDeleteAward}
+                    handleReorderItem={handleReorderItem}
                   />
                 )}
 
@@ -1007,11 +1069,9 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
       
       {/* 1. HEADER (Fixed Navigation with Glassmorphism) */}
       <ProfileHeader 
-        profileData={profileData} 
+        profileData={profileDataToDisplay} 
         t={t} 
         awardsToDisplay={awardsToDisplay} 
-        currentLang={currentLang} 
-        setCurrentLang={setCurrentLang} 
         isDarkMode={isDarkMode} 
         toggleTheme={toggleTheme} 
         scrollToSection={scrollToSection} 
@@ -1024,7 +1084,7 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
         
         {/* SECTION 1: HERO */}
         <ProfileHero 
-          profileData={profileData} 
+          profileData={profileDataToDisplay} 
           t={t} 
           cvBlobUrl={cvBlobUrl} 
           scrollToSection={scrollToSection} 
@@ -1032,33 +1092,32 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
 
         {/* SECTION 2: ABOUT & CONTACT INFO SIDE-BY-SIDE */}
         <ProfileAbout 
-          profileData={profileData} 
+          profileData={profileDataToDisplay} 
           t={t} 
         />
 
         {/* SECTION 3: SKILLS */}
         <ProfileSkills 
-          profileData={profileData} 
-          currentLang={currentLang} 
+          profileData={profileDataToDisplay} 
           t={t} 
           softSkillsToDisplay={softSkillsToDisplay}
         />
 
         {/* SECTION 4: EXPERIENCE */}
         <ProfileExperience 
-          profileData={profileData} 
+          profileData={profileDataToDisplay} 
           t={t} 
         />
 
         {/* SECTION 5: PROJECTS */}
         <ProfileProjects 
-          profileData={profileData} 
+          profileData={profileDataToDisplay} 
           t={t} 
         />
 
         {/* SECTION 6: EDUCATION */}
         <ProfileEducation 
-          profileData={profileData} 
+          profileData={profileDataToDisplay} 
           t={t} 
         />
 
@@ -1070,7 +1129,7 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
 
         {/* SECTION 8: CONTACT */}
         <ProfileContact 
-          profileData={profileData} 
+          profileData={profileDataToDisplay} 
           t={t} 
         />
         
@@ -1078,7 +1137,7 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
 
       {/* SECTION 9: FOOTER */}
       <ProfileFooter 
-        profileData={profileData} 
+        profileData={profileDataToDisplay} 
         t={t} 
         scrollToSection={scrollToSection} 
       />

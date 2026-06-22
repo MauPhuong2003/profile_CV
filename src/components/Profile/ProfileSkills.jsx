@@ -1,44 +1,20 @@
 import { Code, Brain } from 'lucide-react';
 
-const getSortedSkills = (skills, lang) => {
+const getSortedSkills = (skills) => {
   if (!skills) return [];
   const entries = Object.entries(skills);
   const orderVi = ["Triển khai", "Tích hợp kỹ thuật", "Công cụ & Kiểm thử", "AI tools"];
-  const orderEn = ["Deployment", "Technical Integration", "Tools & Testing", "AI Tools"];
-  const orderList = lang === 'vi' ? orderVi : orderEn;
   
   return entries.sort((a, b) => {
-    const idxA = orderList.indexOf(a[0]);
-    const idxB = orderList.indexOf(b[0]);
+    const idxA = orderVi.indexOf(a[0]);
+    const idxB = orderVi.indexOf(b[0]);
     const valA = idxA === -1 ? 999 : idxA;
     const valB = idxB === -1 ? 999 : idxB;
     return valA - valB;
   });
 };
 
-const softSkillTranslations = {
-  // Database values
-  "Cài đặt & cấu hình phần mềm": "Software Installation & Configuration",
-  "Quản trị cơ sở dữ liệu": "Database Administration",
-  "Xử lý sự cố kỹ thuật": "Technical Troubleshooting",
-  
-  // Common fallbacks
-  "Làm việc nhóm": "Teamwork",
-  "Giao tiếp": "Communication",
-  "Giải quyết vấn đề": "Problem Solving",
-  "Quản lý thời gian": "Time Management",
-  "Tư duy phản biện": "Critical Thinking",
-  "Khả năng thích ứng": "Adaptability",
-  "Thích ứng": "Adaptability",
-  "Sáng tạo": "Creativity"
-};
-
-const translateSoftSkill = (skill, lang) => {
-  if (lang === 'vi') return skill;
-  return softSkillTranslations[skill] || skill;
-};
-
-const ProfileSkills = ({ profileData, currentLang, t, softSkillsToDisplay }) => {
+const ProfileSkills = ({ profileData, t, softSkillsToDisplay }) => {
   return (
     <section id="skills" className="scroll-mt-24 space-y-12">
       <div className="space-y-10">
@@ -50,7 +26,7 @@ const ProfileSkills = ({ profileData, currentLang, t, softSkillsToDisplay }) => 
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {getSortedSkills(profileData.skills, currentLang).map(([category, items]) => (
+          {getSortedSkills(profileData.skills).map(([category, items]) => (
             <div 
               key={category} 
               className="p-5 rounded-xl bg-app-card border border-app-border hover:border-app-accent/30 transition-all hover:scale-[1.005] relative overflow-hidden group shadow-sm flex flex-col justify-between"
@@ -98,7 +74,7 @@ const ProfileSkills = ({ profileData, currentLang, t, softSkillsToDisplay }) => 
                   key={index} 
                   className="px-3.5 py-2 rounded-lg text-xs font-semibold bg-app-bg text-app-text border border-app-border hover:border-app-accent/30 hover:text-app-accent transition-all cursor-default"
                 >
-                  {translateSoftSkill(skill, currentLang)}
+                  {skill}
                 </span>
               ))}
             </div>
