@@ -3,18 +3,18 @@ import { Info, Target, Milestone, Contact, Calendar, Phone, Mail, MapPin } from 
 const ProfileAbout = ({ profileData, t }) => {
   return (
     <section id="about" className="scroll-mt-24">
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-12">
         
         {/* Left Column: Giới thiệu bản thân & Mục tiêu */}
-        <div className="md:col-span-3 space-y-8">
-          <div className="space-y-6">
-            <div className="flex items-center gap-3 border-b border-app-border pb-4">
+        <div className="md:col-span-3 space-y-10">
+          <div className="space-y-8">
+            <div className="flex items-center gap-3 border-b border-app-border pb-6">
               <div className="p-2 rounded-lg bg-app-accent/10 text-app-accent">
                 <Info className="w-5 h-5" />
               </div>
-              <h2 className="font-display text-2xl font-bold tracking-tight text-app-text">{t.about}</h2>
+              <h2 className="font-display text-2xl font-bold tracking-wide text-app-text">{t.about}</h2>
             </div>
-            <p className="text-app-muted text-base md:text-lg leading-relaxed whitespace-pre-line">
+            <p className="text-app-muted text-sm md:text-base leading-loose tracking-wide whitespace-pre-line text-justify">
               {profileData.about}
             </p>
           </div>
@@ -28,7 +28,7 @@ const ProfileAbout = ({ profileData, t }) => {
                     <Target className="w-4.5 h-4.5" />
                     {t.shortGoal}
                   </h4>
-                  <p className="text-xs text-app-muted leading-relaxed">
+                  <p className="text-xs md:text-sm text-app-muted leading-relaxed tracking-wide">
                     {profileData.shortTermGoal}
                   </p>
                 </div>
@@ -39,7 +39,7 @@ const ProfileAbout = ({ profileData, t }) => {
                     <Milestone className="w-4.5 h-4.5" />
                     {t.longGoal}
                   </h4>
-                  <p className="text-xs text-app-muted leading-relaxed">
+                  <p className="text-xs md:text-sm text-app-muted leading-relaxed tracking-wide">
                     {profileData.longTermGoal}
                   </p>
                 </div>
@@ -60,7 +60,7 @@ const ProfileAbout = ({ profileData, t }) => {
                 {t.contactInfo}
               </h3>
               
-              <div className="space-y-4 text-sm">
+              <div className="space-y-6 text-sm">
                 {profileData.birthDate && (
                   <div className="flex items-center gap-3">
                     <Calendar className="w-4.5 h-4.5 text-app-accent shrink-0" />

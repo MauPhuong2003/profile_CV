@@ -38,7 +38,7 @@ const uiTranslations = {
     about: "Giới thiệu bản thân",
     skills: "Kỹ năng chuyên môn",
     experience: "Kinh nghiệm làm việc",
-    projects: "Dự án triển khai",
+    projects: "Dự án nổi bật",
     education: "Học vấn & Bằng cấp",
     contact: "Liên hệ",
     contactMe: "Liên hệ với tôi",
@@ -69,7 +69,8 @@ const uiTranslations = {
     connectNow: "Liên hệ ngay",
     awards: "Giải thưởng & Thành tựu",
     navAwards: "Giải thưởng",
-    awarded: "Đạt giải"
+    awarded: "Đạt giải",
+    softSkills: "Kỹ năng mềm"
   },
   en: {
     about: "About Me",
@@ -106,7 +107,8 @@ const uiTranslations = {
     connectNow: "Connect Now",
     awards: "Awards & Achievements",
     navAwards: "Awards",
-    awarded: "Awarded"
+    awarded: "Awarded",
+    softSkills: "Soft Skills"
   }
 };
 
@@ -123,10 +125,12 @@ const defaultProfile = {
   phone: "",
   address: "",
   skills: {
-    "Hệ thống & Hạ tầng": [],
-    "Triển khai & Tích hợp": [],
-    "Công cụ & Quy trình": []
+    "Triển khai": [],
+    "Tích hợp kỹ thuật": [],
+    "Công cụ & Kiểm thử": [],
+    "AI tools": []
   },
+  softSkills: [],
   experience: [],
   projects: [],
   education: {
@@ -181,6 +185,10 @@ function App() {
   const awardsToDisplay = (profileData?.awards && profileData.awards.length > 0) 
     ? profileData.awards 
     : (allProfiles?.vi?.awards || []);
+  
+  const softSkillsToDisplay = (profileData?.softSkills && profileData.softSkills.length > 0) 
+    ? profileData.softSkills 
+    : (allProfiles?.vi?.softSkills || []);
   
   const [currentRoute, setCurrentRoute] = useState(() => {
     return window.location.pathname === '/admin' ? 'admin' : 'cv';
@@ -894,6 +902,7 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                     handleAddSkill={handleAddSkill}
                     handleUpdateSkill={handleUpdateSkill}
                     handleDeleteSkill={handleDeleteSkill}
+                    handleManualChange={handleManualChange}
                   />
                 )}
 
@@ -1011,7 +1020,7 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
       {/* Hero background mesh light gradient */}
       <div className="absolute top-0 left-0 right-0 h-[600px] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-app-accent/5 via-app-bg/0 to-app-bg/0 pointer-events-none z-0"></div>
 
-      <main className="max-w-4xl mx-auto px-4 pt-28 pb-16 relative z-10 space-y-24 md:space-y-32">
+      <main className="max-w-4xl mx-auto px-4 pt-32 pb-24 relative z-10 space-y-32 md:space-y-44">
         
         {/* SECTION 1: HERO */}
         <ProfileHero 
@@ -1032,6 +1041,7 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
           profileData={profileData} 
           currentLang={currentLang} 
           t={t} 
+          softSkillsToDisplay={softSkillsToDisplay}
         />
 
         {/* SECTION 4: EXPERIENCE */}

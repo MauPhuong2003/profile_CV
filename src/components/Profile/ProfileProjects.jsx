@@ -12,7 +12,7 @@ const renderDescriptionList = (description) => {
   if (lines.length === 0) return null;
 
   return (
-    <ul className="list-disc pl-5 space-y-1.5 text-sm text-app-muted leading-relaxed">
+    <ul className="list-disc pl-5 space-y-3 text-xs md:text-sm text-app-muted leading-loose tracking-wide">
       {lines.map((line, idx) => (
         <li key={idx}>{line}</li>
       ))}
@@ -22,15 +22,15 @@ const renderDescriptionList = (description) => {
 
 const ProfileProjects = ({ profileData, t }) => {
   return (
-    <section id="projects" className="scroll-mt-24 space-y-8">
-      <div className="flex items-center gap-3 border-b border-app-border pb-4">
+    <section id="projects" className="scroll-mt-24 space-y-12">
+      <div className="flex items-center gap-3 border-b border-app-border pb-6">
         <div className="p-2 rounded-lg bg-app-accent/10 text-app-accent">
           <Laptop className="w-5 h-5" />
         </div>
-        <h2 className="font-display text-2xl font-bold tracking-tight text-app-text">{t.projects}</h2>
+        <h2 className="font-display text-2xl font-bold tracking-wide text-app-text">{t.projects}</h2>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {profileData.projects?.map((proj, idx) => (
           <div 
             key={idx} 
@@ -39,7 +39,7 @@ const ProfileProjects = ({ profileData, t }) => {
             {/* Decorative background glow */}
             <div className="absolute -bottom-16 -right-16 w-32 h-32 bg-app-accent/5 rounded-full blur-2xl group-hover:bg-app-accent/10 transition-all pointer-events-none"></div>
             
-            <div className="space-y-4 relative z-10">
+            <div className="space-y-5 relative z-10">
               <div className="flex items-center justify-between">
                 <h3 className="font-display text-lg font-bold text-app-text group-hover:text-app-accent transition-colors">
                   {proj.name}

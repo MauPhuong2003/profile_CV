@@ -10,7 +10,7 @@ const ProjectsForm = ({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between border-b border-app-border pb-2">
-        <h4 className="text-sm font-bold uppercase tracking-wider text-app-accent">Dự án triển khai</h4>
+        <h4 className="text-sm font-bold uppercase tracking-wider text-app-accent">Dự án nổi bật</h4>
         <button 
           type="button"
           onClick={handleAddProject}

@@ -18,7 +18,7 @@ const ProfileHeader = ({
           <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-app-accent to-indigo-600 flex items-center justify-center font-bold text-black text-lg">
             {profileData.name.charAt(0)}
           </div>
-          <span className="font-display font-bold text-lg tracking-tight hover:text-app-accent transition-colors">
+          <span className="font-display font-bold text-lg tracking-wide hover:text-app-accent transition-colors">
             {profileData.name}
           </span>
         </div>

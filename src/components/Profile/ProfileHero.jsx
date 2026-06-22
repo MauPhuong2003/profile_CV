@@ -15,14 +15,14 @@ const ProfileHero = ({ profileData, t, cvBlobUrl, scrollToSection }) => {
         />
       </div>
       
-      <div className="space-y-3 max-w-2xl">
-        <h1 className="font-display text-4xl md:text-6xl font-extrabold tracking-tight text-app-text">
+      <div className="space-y-5 max-w-2xl">
+        <h1 className="font-display text-4xl md:text-6xl font-extrabold tracking-wide text-app-text">
           {profileData.name}
         </h1>
         <p className="font-display text-xl md:text-2xl font-bold text-app-accent/95">
           {profileData.title}
         </p>
-        <p className="text-sm md:text-base text-app-muted leading-relaxed max-w-lg mx-auto">
+        <p className="text-xs md:text-sm text-app-muted leading-loose tracking-wide max-w-lg mx-auto text-justify">
           {profileData.bio}
         </p>
       </div>

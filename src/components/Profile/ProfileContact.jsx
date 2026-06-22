@@ -55,21 +55,21 @@ const ProfileContact = ({ profileData, t }) => {
   };
 
   return (
-    <section id="contact" className="scroll-mt-24 space-y-8">
-      <div className="flex items-center gap-3 border-b border-app-border pb-4">
+    <section id="contact" className="scroll-mt-24 space-y-12">
+      <div className="flex items-center gap-3 border-b border-app-border pb-6">
         <div className="p-2 rounded-lg bg-app-accent/10 text-app-accent">
           <Mail className="w-5 h-5" />
         </div>
-        <h2 className="font-display text-2xl font-bold tracking-tight text-app-text">{t.contact}</h2>
+        <h2 className="font-display text-2xl font-bold tracking-wide text-app-text">{t.contact}</h2>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="space-y-4 md:col-span-1">
-          <p className="text-sm text-app-muted leading-relaxed">
+        <div className="space-y-5 md:col-span-1">
+          <p className="text-xs md:text-sm text-app-muted leading-loose tracking-wide">
             {t.recruiterConnect}
           </p>
           
-          <div className="space-y-3 pt-2">
+          <div className="space-y-4.5 pt-4">
             {/* Email */}
             {profileData.contact?.email && (
               <a href={`mailto:${profileData.contact.email}`} className="flex items-center gap-3 text-sm text-app-muted hover:text-app-accent transition-colors group">

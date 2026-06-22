@@ -12,7 +12,7 @@ const renderDescriptionList = (description) => {
   if (lines.length === 0) return null;
 
   return (
-    <ul className="list-disc pl-5 space-y-1.5 text-sm text-app-muted leading-relaxed">
+    <ul className="list-disc pl-5 space-y-3 text-xs md:text-sm text-app-muted leading-loose tracking-wide">
       {lines.map((line, idx) => (
         <li key={idx}>{line}</li>
       ))}
@@ -22,12 +22,12 @@ const renderDescriptionList = (description) => {
 
 const ProfileExperience = ({ profileData, t }) => {
   return (
-    <section id="experience" className="scroll-mt-24 space-y-8">
-      <div className="flex items-center gap-3 border-b border-app-border pb-4">
+    <section id="experience" className="scroll-mt-24 space-y-12">
+      <div className="flex items-center gap-3 border-b border-app-border pb-6">
         <div className="p-2 rounded-lg bg-app-accent/10 text-app-accent">
           <Briefcase className="w-5 h-5" />
         </div>
-        <h2 className="font-display text-2xl font-bold tracking-tight text-app-text">{t.experience}</h2>
+        <h2 className="font-display text-2xl font-bold tracking-wide text-app-text">{t.experience}</h2>
       </div>
 
       {/* Wrapper: absolute lane line + flex items */}
@@ -35,7 +35,7 @@ const ProfileExperience = ({ profileData, t }) => {
         {/* Continuous vertical lane — center aligned with dots */}
         <div className="absolute left-[9px] top-6 bottom-6 w-0.5 bg-app-border/50"></div>
 
-        <div className="space-y-5">
+        <div className="space-y-8">
           {profileData.experience?.map((exp, idx) => (
             <div key={idx} className="flex items-start gap-5 group">
 
@@ -50,7 +50,7 @@ const ProfileExperience = ({ profileData, t }) => {
                 {/* Decorative background glow */}
                 <div className="absolute -bottom-12 -right-12 w-28 h-28 bg-app-accent/5 rounded-full blur-2xl group-hover:bg-app-accent/10 transition-all pointer-events-none"></div>
 
-                <div className="space-y-3 relative z-10">
+                <div className="space-y-5 relative z-10">
                   {/* Header: company + period badge */}
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div>
