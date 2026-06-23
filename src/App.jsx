@@ -31,7 +31,6 @@ import ProjectsForm from './components/Admin/Forms/ProjectsForm';
 import EducationForm from './components/Admin/Forms/EducationForm';
 import AwardsForm from './components/Admin/Forms/AwardsForm';
 import ContactForm from './components/Admin/Forms/ContactForm';
-import AiConsoleForm from './components/Admin/Forms/AiConsoleForm';
 
 const uiTranslations = {
   about: "Giới thiệu bản thân",
@@ -1117,72 +1116,53 @@ Trả về JSON với cấu trúc CHÍNH XÁC sau (chỉ trả về JSON, không
                   />
                 )}
 
-                {adminTab === 'ai' && (
-                  <AiConsoleForm 
-                    apiKey={apiKey}
-                    setApiKey={setApiKey}
-                    aiPrompt={aiPrompt}
-                    setAiPrompt={setAiPrompt}
-                    aiStyle={aiStyle}
-                    setAiStyle={setAiStyle}
-                    handleGenerateAI={handleGenerateAI}
-                    isAiLoading={isAiLoading}
-                    aiError={aiError}
-                    aiResponseRaw={aiResponseRaw}
-                    parsedAiData={parsedAiData}
-                    handleApplyAiData={handleApplyAiData}
-                  />
-                )}
-
                 {/* Manual Edit Action bottom */}
-                {adminTab !== 'ai' && (
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-t border-app-border pt-4 mt-6">
-                    {/* Storage usage indicator */}
-                    <div className="flex flex-col gap-0.5">
-                      <div className="flex items-center gap-1.5">
-                        <span className={`w-2.5 h-2.5 rounded-full ${storageInfo.percent > 80 ? 'bg-red-500 animate-pulse' : storageInfo.percent > 50 ? 'bg-amber-500' : 'bg-green-500'}`}></span>
-                        <span className="text-xs text-app-muted font-sans font-medium">
-                          Dung lượng dữ liệu: {storageInfo.sizeKb}KB / 5000KB ({storageInfo.percent}%)
-                        </span>
-                      </div>
-                      {storageInfo.percent > 50 && (
-                        <span className="text-[10px] text-amber-500 font-sans leading-tight max-w-[280px]">
-                          {storageInfo.percent > 80 
-                            ? '⚠️ Bộ nhớ sắp đầy! Vui lòng gỡ file CV nặng hoặc thay thế bằng ảnh/file nhỏ hơn.' 
-                            : 'Khuyên dùng: Nén file CV xuống dưới 700KB để lưu trữ mượt mà.'
-                          }
-                        </span>
-                      )}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-t border-app-border pt-4 mt-6">
+                  {/* Storage usage indicator */}
+                  <div className="flex flex-col gap-0.5">
+                    <div className="flex items-center gap-1.5">
+                      <span className={`w-2.5 h-2.5 rounded-full ${storageInfo.percent > 80 ? 'bg-red-500 animate-pulse' : storageInfo.percent > 50 ? 'bg-amber-500' : 'bg-green-500'}`}></span>
+                      <span className="text-xs text-app-muted font-sans font-medium">
+                        Dung lượng dữ liệu: {storageInfo.sizeKb}KB / 5000KB ({storageInfo.percent}%)
+                      </span>
                     </div>
-
-                    <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
-                      {saveSuccess && (
-                        <span className="flex items-center gap-1.5 text-xs font-semibold text-green-500">
-                          <CheckCircle className="w-4 h-4" />
-                          Đã lưu thành công!
-                        </span>
-                      )}
-                      <button
-                        type="button"
-                        onClick={handleSaveManual}
-                        disabled={isSaving}
-                        className={`px-6 py-2.5 rounded-lg bg-app-accent text-black font-bold text-sm hover:opacity-90 transition-opacity flex items-center gap-1.5 cursor-pointer shadow-lg shadow-app-accent/15 ${isSaving ? 'opacity-70 cursor-not-allowed' : ''}`}
-                      >
-                        {isSaving ? (
-                          <>
-                            <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
-                            Đang lưu...
-                          </>
-                        ) : (
-                          <>
-                            <CheckCircle className="w-4 h-4 text-black" />
-                            Lưu Profile
-                          </>
-                        )}
-                      </button>
-                    </div>
+                    {storageInfo.percent > 50 && (
+                      <span className="text-[10px] text-amber-500 font-sans leading-tight max-w-[280px]">
+                        {storageInfo.percent > 80 
+                          ? '⚠️ Bộ nhớ sắp đầy! Vui lòng gỡ file CV nặng hoặc thay thế bằng ảnh/file nhỏ hơn.' 
+                          : 'Khuyên dùng: Nén file CV xuống dưới 700KB để lưu trữ mượt mà.'
+                        }
+                      </span>
+                    )}
                   </div>
-                )}
+
+                  <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+                    {saveSuccess && (
+                      <span className="flex items-center gap-1.5 text-xs font-semibold text-green-500">
+                        <CheckCircle className="w-4 h-4" />
+                        Đã lưu thành công!
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={handleSaveManual}
+                      disabled={isSaving}
+                      className={`px-6 py-2.5 rounded-lg bg-app-accent text-black font-bold text-sm hover:opacity-90 transition-opacity flex items-center gap-1.5 cursor-pointer shadow-lg shadow-app-accent/15 ${isSaving ? 'opacity-70 cursor-not-allowed' : ''}`}
+                    >
+                      {isSaving ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+                          Đang lưu...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="w-4 h-4 text-black" />
+                          Lưu Profile
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

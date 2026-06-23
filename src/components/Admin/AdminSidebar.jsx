@@ -1,4 +1,4 @@
-import { Info, Code, Briefcase, Target, GraduationCap, Trophy, Contact, Sparkles } from 'lucide-react';
+import { Info, Code, Briefcase, Target, GraduationCap, Trophy, Contact } from 'lucide-react';
 
 const AdminSidebar = ({ adminTab, setAdminTab }) => {
   const menuItems = [
@@ -8,8 +8,7 @@ const AdminSidebar = ({ adminTab, setAdminTab }) => {
     { id: 'projects', label: 'Dự án', icon: Target },
     { id: 'education', label: 'Học vấn', icon: GraduationCap },
     { id: 'awards', label: 'Giải thưởng', icon: Trophy },
-    { id: 'contact', label: 'Liên hệ & Cài đặt', icon: Contact },
-    { id: 'ai', label: 'Tạo bằng AI (Claude)', icon: Sparkles, highlight: true }
+    { id: 'contact', label: 'Liên hệ & Cài đặt', icon: Contact }
   ];
 
   return (
