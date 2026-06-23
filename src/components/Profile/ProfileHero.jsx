@@ -8,7 +8,7 @@ const ProfileHero = ({ profileData, t, cvBlobUrl, scrollToSection }) => {
         <img 
           src={profileData.avatar} 
           alt={profileData.name} 
-          className="relative w-32 h-32 md:w-40 md:h-40 rounded-full object-cover border-2 border-app-accent/80 shadow-2xl bg-app-card"
+          className="relative w-44 h-44 sm:w-52 sm:h-52 md:w-60 md:h-60 lg:w-64 lg:h-64 rounded-full object-cover border-4 border-app-accent/80 shadow-2xl bg-app-card"
           onError={(e) => {
             e.target.src = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=256&h=256&q=80";
           }}

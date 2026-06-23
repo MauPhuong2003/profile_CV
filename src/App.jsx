@@ -458,8 +458,8 @@ function App() {
           let width = img.width;
           let height = img.height;
           
-          // Downscale to max 500px
-          const MAX_SIZE = 500;
+          // Downscale to max 800px for better sharpness on Retina
+          const MAX_SIZE = 800;
           if (width > height) {
             if (width > MAX_SIZE) {
               height = Math.round((height * MAX_SIZE) / width);
@@ -475,11 +475,50 @@ function App() {
           canvas.width = width;
           canvas.height = height;
           const ctx = canvas.getContext('2d');
+          
+          // Use high quality image smoothing to prevent blurriness during downscale
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          
           ctx.drawImage(img, 0, 0, width, height);
           
-          // Compress to JPEG with 70% quality
-          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
-          console.log("Compressed avatar size:", Math.round(compressedDataUrl.length / 1024), "KB");
+          // Apply a sharpening filter
+          const sharpen = (context, w, h, mix) => {
+            const imageData = context.getImageData(0, 0, w, h);
+            const data = imageData.data;
+            const output = new ImageData(w, h);
+            const dst = output.data;
+            const weights = [0, -1, 0, -1, 5, -1, 0, -1, 0];
+            for (let y = 0; y < h; y++) {
+              for (let x = 0; x < w; x++) {
+                const dstOff = (y * w + x) * 4;
+                let r = 0, g = 0, b = 0;
+                for (let cy = 0; cy < 3; cy++) {
+                  for (let cx = 0; cx < 3; cx++) {
+                    const scy = Math.min(Math.max(y + cy - 1, 0), h - 1);
+                    const scx = Math.min(Math.max(x + cx - 1, 0), w - 1);
+                    const srcOff = (scy * w + scx) * 4;
+                    const wt = weights[cy * 3 + cx];
+                    r += data[srcOff] * wt;
+                    g += data[srcOff + 1] * wt;
+                    b += data[srcOff + 2] * wt;
+                  }
+                }
+                dst[dstOff] = data[dstOff] + (r - data[dstOff]) * mix;
+                dst[dstOff + 1] = data[dstOff + 1] + (g - data[dstOff + 1]) * mix;
+                dst[dstOff + 2] = data[dstOff + 2] + (b - data[dstOff + 2]) * mix;
+                dst[dstOff + 3] = data[dstOff + 3]; // alpha
+              }
+            }
+            context.putImageData(output, 0, 0);
+          };
+          
+          // Mix = 0.35 (light sharpen)
+          sharpen(ctx, width, height, 0.35);
+          
+          // Compress to JPEG with 85% quality
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          console.log("Compressed and sharpened avatar size:", Math.round(compressedDataUrl.length / 1024), "KB");
           
           handleManualChange('avatar', compressedDataUrl);
         };
